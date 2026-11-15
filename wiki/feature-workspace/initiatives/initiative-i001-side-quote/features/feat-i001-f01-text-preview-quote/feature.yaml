@@ -1,0 +1,72 @@
+id: I001-F01
+title: 文本预览划词引用闭环（通用核心 + 文本格式适配）
+leaf: true
+owner: core
+phase: implementation
+state: in-progress
+wave: 1
+depends_on: []
+context_refs:
+- path: ../../feasibility/confirmed-constraints.md
+  kind: prior-constraints
+  required: true
+scope_gate:
+  scores:
+  - 1
+  - 2
+  - 1
+  - 0
+  - 2
+  - 2
+  - 2
+  - 1
+  hard_gates: []
+  verdict: split-default
+  indivisibility_reason: 同一业务闭环的同一交互路径：捕获、来源组装、插入与通知分开交付时任何一段都无法独立 验收（捕获了没插入等于没有用户可见结果，插入而没有可靠来源组装则引用块不可信）。格式覆盖面属于同一
+    闭环的适配广度，按格式拆分只会在同一条插入路径上复制核心，不产生独立价值闭环。
+consistency_matrix:
+  business:
+    status: aligned
+    owner: core
+    source_refs:
+    - discussion/workbench.md
+    - core/implementation.md
+    - ../../feasibility/confirmed-constraints.md
+    promotion_targets:
+    - product/product-vision.md
+  architecture:
+    status: aligned
+    owner: core
+    source_refs:
+    - discussion/workbench.md
+    - core/implementation.md
+    - feasibility/summary.md
+    promotion_targets:
+    - architecture/module-boundaries.md
+  contract:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/quote-content-contract.md
+    - core/implementation.md
+    promotion_targets:
+    - implementation/frontend/sidebar-quote-contract.md
+  code:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/implementation.md
+    - discussion/workbench.md
+    promotion_targets:
+    - implementation/frontend/sidebar-quote-implementation.md
+  testing:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/testing-and-acceptance.md
+    - core/quote-content-contract.md
+    promotion_targets:
+    - testing/sidebar-quote-acceptance.md
+next_action:
+  skill: hl-feature-orchestrator
+  instruction: 按 code-ai/implementation-plan.md 的 P1-P7 顺序实现并同步派生文档

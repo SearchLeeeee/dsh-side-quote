@@ -1,0 +1,18 @@
+id: I001
+title: 侧栏文档预览划词引用
+summary: 在 DSH Web 右侧栏文档预览中划词，把选中文字组装成带来源路径的引用块插入当前 会话输入框，并以通知反馈结果。零构建、零运行时依赖，不修改自带插件包。
+state: in-progress
+context_refs:
+- path: feasibility/confirmed-constraints.md
+  kind: prior-constraints
+  required: true
+features:
+- id: I001-F01
+  manifest: features/feat-i001-f01-text-preview-quote/feature.yaml
+- id: I001-F02
+  manifest: features/feat-i001-f02-html-preview-takeover/feature.yaml
+initial_decomposition:
+  status: completed
+  feature_ids:
+  - I001-F01
+  - I001-F02

@@ -1,5 +1,7 @@
 schema_version: '1.0'
 workspace_status: active
-next_initiative_number: 1
-initiatives: []
+next_initiative_number: 2
+initiatives:
+  - id: I001
+    manifest: initiatives/initiative-i001-side-quote/initiative.yaml
 feature_tombstones: []
