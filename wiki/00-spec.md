@@ -1,0 +1,120 @@
+# 00. Wiki 运行规范
+
+## 目标与范围
+
+本规范定义 `wiki/` 如何作为单一长期文档根运作：唯一入口、MOC 层级、链接规则、
+归档映射、临时工作区隔离和维护流程。它不描述业务事实，也不复制任何权威文档的
+内容；业务事实由[文件权威地图](02-file-authority-map.md)指定的文档承载。
+
+## 唯一入口
+
+- 仓库根 `README.md` 保持紧凑，只指向本 wiki（`wiki/README.md`）。
+- [wiki/README.md](README.md) 是长期文档的唯一导航根，也是 root MOC。
+- `AGENTS.md` 与 `CLAUDE.md` 是 agent 启动入口；它们引用本 wiki，不复制本 wiki。
+- 任何新增长期权威文档都必须能从 [wiki/README.md](README.md) 出发、在三跳内到达；过程区按下文隔离。
+
+## 目录结构
+
+```text
+wiki/
+  README.md              # root MOC，唯一入口
+  00-spec.md             # 本文件：运行规范
+  01-reading-guide.md    # 阅读路径
+  02-file-authority-map.md
+  03-current-decisions.md
+  human/                 # 人类维护者入口与系统总览
+  code-ai/               # Code AI agent profile（由独立模板维护）
+  product/               # 产品目标与稳定需求
+  domain/                # 领域对象与业务规则
+  architecture/          # 系统边界、模块与数据
+  implementation/        # 后端、前端、共享契约、专题实现
+  features/              # 稳定 Feature 说明
+  governance/            # 边界、文档协议、生成的门禁摘要
+  testing/               # 测试工程与 fixtures 治理
+  validation/            # 验证记录与证据索引
+  feature-workspace/     # 临时工作面，默认隔离
+  quick-workspace/       # 小需求过程记录，默认隔离
+  refactor-workspace/    # 手动扫描与维护记录，默认隔离
+```
+
+## MOC 层级
+
+- 每个目录的 `README.md` 是该目录的 MOC：开头一句说明用途，下面是链接加一句话
+  角色说明。
+- 层级为 root MOC → 目录 MOC → 专题文档；**不创建**额外的 `moc/`、`maps/`、
+  `index/` 目录来制造第二套入口。
+- MOC 只负责发现。业务规则、阈值、状态机、契约字段不得写在 MOC 里。
+- 冲突由[文件权威地图](02-file-authority-map.md)裁决，不由 MOC 裁决。
+
+## 三跳发现规则
+
+- 除流程摘要中明确登记的过程区外，每个长期 Markdown 文件都必须
+  从 root MOC 出发、经过不超过三个 MOC 跳转可达。
+- 新增目录必须同时：创建该目录的 `README.md`，并在父 MOC 中登记一行。
+- 超过三跳或不可达的文档视为导航缺陷，必须修复而不是放宽规则。
+
+## 链接规则
+
+- 不使用 Obsidian wikilink 语法（`[[...]]`）。
+- 语义引用、表格引用和阅读顺序使用相对路径的标准 Markdown 链接。
+- 代码路径、命令、配置键、占位符保持反引号，不强制改成链接。
+- 外部 URL 必须带 scheme；本地链接不得逃出仓库根。
+- 指向标题的锚点必须真实存在；避免使用非 ASCII 锚点。
+
+## 归档映射
+
+| 知识类型 | 归档位置 |
+| --- | --- |
+| 产品目标、范围、稳定需求 | `product/` |
+| 领域对象、业务规则、术语 | `domain/` |
+| 系统边界、模块划分、数据流、数据源契约 | `architecture/` |
+| 后端、前端、共享契约、专题实现细节 | `implementation/` |
+| 已稳定且需要独立入口的 Feature 说明 | `features/` |
+| 边界、文档维护协议、流程门禁说明 | `governance/` |
+| 测试工程、fixtures 治理、质量门禁 | `testing/` |
+| 验证记录、证据索引、验收结论 | `validation/` |
+| 人类接手视角的系统总览 | `human/` |
+| 实现类 agent profile | `code-ai/` |
+
+决策历史只由 Git 保留：不创建 ADR 目录，也不维护第二套决策历史体系。仍然有效的
+结论合并进[当前决策](03-current-decisions.md)或对应领域权威文档。
+
+## 临时工作区的默认隔离
+
+- `feature-workspace/`：Initiative / Leaf Feature 的讨论、状态与证据。它描述
+  「准备引入的变化」，不描述当前系统事实。
+- `quick-workspace/`：有界 bugfix 与细节调整的过程记录与验证交接。它同样不构成
+  当前系统权威。
+- `refactor-workspace/`：用户手动发起的扫描、候选选择、维护与证据；不重开已完成
+  Initiative，也不构成当前系统权威。
+- 内置三类过程区及 `workflow.process_workspaces` 明确登记的附加根目录，以
+  [流程摘要](governance/workflow-profile.md)的有效清单为准。只按精确根目录及其后代排除，
+  不因名称包含 `workspace` 就排除普通文档。
+- 这些过程区必须从默认搜索、派生索引、Graph、MOC、长期记忆和当前事实发现中排除；
+  只有明确的对应工作流、手动维护或审计请求才能定向读取。
+- 长期 Wiki 不通过链接进入过程区；需要引用时只写反引号路径，不写链接。
+- 合并完成后，长期 Wiki 是唯一现行权威，临时材料只作为非权威 provenance 保留。
+
+## 维护要求
+
+1. 每类知识只有一个首要权威，归属见[文件权威地图](02-file-authority-map.md)。
+2. 不维护并行文档体系，不通过移动或重命名文件制造第二套入口。
+3. 正文用 zh-CN；技术标识符、API、字段名和文件名保留英文。
+4. 代码、契约与文档在同一次变更中一起更新；只有代码没有文档视为未完成。
+5. 不写入真实密钥、完整账号、私有端点、内部推理或可复制的私有路径。
+6. 由工具生成的文件（带「由工具生成」横幅）不得手工编辑，只能通过
+   `factory upgrade` 重建。
+7. 新增长期权威文档必须同时登记父 MOC；删除文档必须同时清理所有入链。过程区不补入长期 MOC。
+
+## 合并前检查清单
+
+- [ ] 从 root MOC 出发，所有受影响的长期文档都在三跳内可达。
+- [ ] 不存在 wikilink，也不存在指向已登记过程区的长期 Wiki 链接。
+- [ ] 每个本地链接目标存在，锚点存在。
+- [ ] 每个事实只有一个首要权威，没有在两处维护不同表述。
+- [ ] 生成文件与 `.factory/factory.yaml` 同步，且同一次提交。
+- [ ] 临时工作区的内容没有被误当作当前权威，也没有把 I/F 编号写进权威文档。
+- [ ] 逐次验证证据按 `.factory/factory.yaml` 的 `verification.evidence_root` 保存；
+      `wiki/validation/` 维护当前有效范围、基线、限制和必要定位说明，不复制执行流水或逐条索引历史记录。
+- [ ] 工作流过程证据留在各自过程区，不补入长期 MOC。
+- [ ] 文件编码与换行风格没有被无意规范化。

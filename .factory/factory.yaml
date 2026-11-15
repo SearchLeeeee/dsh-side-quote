@@ -1,0 +1,97 @@
+# Project configuration for HighLand-factory.
+# This file is the single source of truth for project-scoped workflow values.
+# Edit it, then run: factory doctor --work .
+# Machine-scoped values live in .factory/local.yaml (gitignored).
+
+
+schema: 1
+factory:
+  version: '>=0.1.0 <0.2.0'
+  template: workspace-v1
+project:
+  name: dsh-side-quote
+  slug: dsh-side-quote
+  one_liner: 在 DSH Web 右侧栏预览中划词，自动把选中文字作为带来源路径的引用块插入当前会话输入框的零构建客户端插件。
+  stack:
+  - JavaScript（浏览器 ES module，零构建、零运行时依赖）
+  - DSH 0.2.2-rc.3 client plugin（cordis slots / documentPreviews / conversation input）
+  - Node 24 / pnpm 11（仅开发与本机安装）
+  language:
+    docs: zh-CN
+    code: en
+    commit: en
+  license: MIT
+  visibility: public
+repo:
+  mode: mono
+  default_branch: main
+  code_path: code
+  wiki_path: wiki
+  code_external: null
+  remote: origin
+  commit:
+    format: conventional
+owners:
+- id: core
+  title: 核心
+  paths:
+  - code
+commands:
+  setup: []
+  build: []
+  lint:
+  - node --check code/index.js
+  - node --check code/client.js
+  typecheck: []
+  test:
+  - node --test "code/test/**/*.test.mjs"
+  e2e: []
+  dev: []
+  verify:
+  - node --check code/index.js
+  - node --check code/client.js
+  - node --test "code/test/**/*.test.mjs"
+verification:
+  baseline_evidence: wiki/validation/init-baseline.md
+  evidence_root: wiki/feature-workspace
+  isolated_env: local
+workflow:
+  scope_gate:
+    enabled: true
+    split_default: true
+  quick_change: true
+  review_required: true
+  verification_separate: true
+  merge_requires_authorization: true
+  initiative_integration_required: true
+  process_workspaces: []
+security:
+  forbidden_operations:
+  - write-outside-work-repo
+  - modify-or-uninstall-dsh-builtin-plugin
+  - restart-or-kill-user-dev-server-without-approval
+  - secret-value-in-repo
+  - credential-echo-to-log
+  - history-rewrite-on-shared-branch
+  - production-write-without-approval
+  sensitive_classes:
+  - credentials
+  - personal-data
+  - account-identifiers
+  - internal-endpoints
+  - local-machine-paths
+  secrets_file: .env
+agents:
+  platforms:
+  - dsh
+  - claude
+  - codex
+  review_model: null
+  verification_model: null
+packs:
+  enabled:
+  - commit
+  disabled:
+  - dev-runtime
+  - remote-verify
+  - quality-gates

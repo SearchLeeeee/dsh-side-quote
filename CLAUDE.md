@@ -1,0 +1,89 @@
+# CLAUDE.md —— dsh-side-quote
+
+本文件是 Claude 系客户端在本仓库工作的启动约束，与 `AGENTS.md` 实质一致
+（内容同步维护，冲突时以 `AGENTS.md` 为准并立即修正本文件）。
+
+## 第一步：先读这两处，再动手
+
+1. `.factory/local.yaml`：本机 `factory_root`、Python/Node 解释器、端口。
+   文件不存在时不要猜测路径，先要求用户创建（参考 `.factory/local.example.yaml`）。
+2. `wiki/governance/workflow-profile.md`：当前 owner、命令、验证要求、流程门禁
+   和安全边界。该文件由 `factory upgrade` 生成，不要手工编辑。
+
+需要精确字段时再读 `.factory/factory.yaml`（唯一事实源）。任何技能都从这两步
+开始，不允许跳过。
+
+## 目录契约
+
+- `code/`：代码与测试。所有可执行内容只放这里。
+- `wiki/`：长期文档权威根，入口 `wiki/README.md`。代码变了而文档没变，视为未完成。
+- `wiki/governance/`：边界、文档协议与生成的门禁摘要。
+- `.factory/`：机器可读控制面，`factory.yaml` 为唯一事实源。
+
+## 提问方式
+
+整个流程凡涉及向用户提问，统一使用苏格拉底式提问法。提问前读取
+`<FACTORY_ROOT>/skills/hl-workflow-governance/references/socratic-questioning.md`。
+先查已有事实，从用户目标和上一回答出发，一次提出一个中立、聚焦的问题；按需澄清
+概念、检验假设、追问证据或反例、比较视角与替代方案、推演后果。推荐是有条件的提案，
+不得用诱导问题代替用户判断。交互模式等待回答再追问；用户选择的批量工作台模式也遵循
+同一方法，依赖性追问留待回答后提出。信息充分即停止；授权仍须直接、明确，不重复索取
+已有授权，不把沉默或推断当作同意。
+
+## 工作方式
+
+1. 判断请求类别：产品需求走 Quick Change（有界 bugfix/细节调整）或 Initiative / Leaf
+   Feature（新能力或跨模块变更）；用户明确请求手动扫描重构时走 `$hl-refactor`，不自动触发。
+2. Feature 继续走 Scope Gate：不确定是否可一次闭环就先拆分，不允许用 TODO 和 MVP 逃避拆分。
+   手动维护则先确认所有有效 Initiative 已闭环并建立项目占用，再只读扫描、集中选择候选；
+   不为维护创建虚构 Feature，不改写原完成历史，也不放宽 Quick Change 的硬门槛。
+3. 状态只由流程技能在阶段边界推进；不要手工改 manifest 的 phase/state。
+4. Feature 实现前先确认受影响权威文档已更新；实现后必须独立 review，并在独立 session
+   验证。手动维护按已选目标与成本边界实施、独立评审和适用验证，保持当前态 Wiki 与有效
+   代码事实同步；不将实现缺陷改写为正确业务行为。
+5. Feature 合并长期文档需要 owner 显式授权；未授权就只保留在临时工作区。手动维护按
+   已选授权更新当前态文档，不重复原 Feature 的历史转换、tombstone 或权威切换。
+
+6. 验证默认采用最小充分检查，范围依据实际改动及其影响；同一事实不叠加等价校验，
+   未变化且仍适用的结果应复用。独立 review / verification 保持独立判断，不默认重跑
+   全部检查或重建环境；主编排核对关键证据，并按实际风险抽查。
+7. 默认以 Git revision 加相关 diff / 新增文件内容识别评审对象，评审期间保持来源稳定；
+   不强制预提交或全树 clean。来源变化只使受影响结论失效，单纯 HEAD、证据或流程记录
+   变化不自动作废其他有效结果。只有具体的来源歧义、污染、并发冲突或制品完整性风险
+   才增加必要的内容固定、隔离或摘要，简短说明风险，不增加额外审批。
+8. 失败或材料缺口先诊断，只补受影响部分；保存必要的执行结果和失败事实；产生原始日志时，与可清理的测试
+   output 分开，不默认收集全量日志或对全部证据计算摘要。非语义性更正可说明，但不得覆盖失败
+   或把未执行写成通过。满足既定验收和交付边界即停止，不递归为证据补做整套证明。
+9. 启动已登记 Leaf 的 `$hl-feature-orchestrator` 即按治理技能 `references/commit-boundaries.md`
+   授权当前 Feature 在门禁通过后的本地实现、文档同步、评审修复及闭环证据提交；交接和恢复会话
+   保留授权，不逐阶段重问。用户明确限制及更严格的项目政策优先；推送、合并仍须分别明确授权。
+   此授权不涵盖初始化、Quick Change 或无关改动。其他未获提交授权的工作不提交、不推送，但可评审和验证可识别的未提交内容；不因此阻塞
+   无关工作。提交仍须授权和相关门禁通过，遵守仓库模式与先文档后代码政策。若明确
+   验收要求不可变 commit 作为制品身份，先取得授权冻结，再执行该项。
+10. 任何项目写入前按 `<FACTORY_ROOT>/skills/hl-workflow-governance/references/entry-point.md#project-write-lease`
+    获取或明确借用项目占用，将 `FACTORY_MAINTENANCE_TOKEN` 传给本轮写入者；每个实施单元前
+    复核，全部写入者停止后只释放自己拥有的占用。冲突占用期间可只读查询，不得借机越权。
+
+## 生成文件与手工文件的边界
+
+- 由工具生成、禁止手改：`wiki/governance/workflow-profile.md`，以及任何带
+  「由工具生成」横幅的文件。
+- 手工维护：`wiki/` 下的其余权威文档、`code/` 下的代码、`.factory/factory.yaml`。
+- 改 `factory.yaml` 后运行 `factory upgrade`，并把生成文件与配置放在同一次提交。
+
+## 硬性禁止
+
+- 不提交 `.factory/local.yaml`、`.factory/state.json`、`.env`、`*.cred` 等机密文件。
+- 不把真实密钥、完整账号、私有端点写进文档、日志、证据或提交信息。
+- 不在 `wiki/` 使用 Obsidian wikilink；只用相对路径的标准 Markdown 链接。
+- 不在默认当前事实发现中链接已登记的过程区：内置 Feature、Quick、refactor 工作区及
+  `workflow.process_workspaces` 的附加根目录；有效清单以 Workflow Profile 为准，不按名称模糊排除。
+- 不手工改写 Git 历史，不跳过验证直接合并。
+
+## 保持一致性
+
+- 代码、契约、文档三者必须同一次变更一起更新。
+- 一类知识只有一个首要权威；发生冲突时按 `wiki/02-file-authority-map.md` 裁决，
+  不按目录位置或历史命名猜测。
+- 发现文档与实现不一致时，先记录冲突并停止相关编辑，不要私自「顺手修正」权威
+  文档使其迁就当前代码。

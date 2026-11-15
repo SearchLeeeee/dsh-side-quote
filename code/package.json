@@ -1,0 +1,29 @@
+{
+  "name": "dsh-side-quote",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DSH web client plugin: turn sidebar preview selections into a quoted input block.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  }
+}

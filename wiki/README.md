@@ -1,0 +1,33 @@
+# dsh-side-quote Wiki
+
+本目录（`wiki/`）是 dsh-side-quote 的长期文档权威根，本文件是唯一导航入口
+（root MOC）。代码在 `code/`，文档在 `wiki/`；两者描述同一件事的两个面。冲突
+裁决见[文件权威地图](02-file-authority-map.md)，生成日期 `2026-11-15`。
+
+过程区包括内置的 Feature、Quick Change、手动维护工作区，
+以及 [流程摘要](governance/workflow-profile.md)明确登记的附加根目录。它们默认不进入
+本 MOC 的当前事实发现路径，只在明确的对应工作流、手动维护或审计中定向访问；
+本文件不链接过程区内部文档，也不按 `workspace` 名称模糊排除普通权威文档。
+
+## 入口
+
+- [Wiki 运行规范](00-spec.md)：结构、MOC 层级、链接规则与维护流程。
+- [阅读路径](01-reading-guide.md)：按角色和任务选择最小阅读集。
+- [文件权威地图](02-file-authority-map.md)：每类知识的首要权威与冲突处理程序。
+- [当前决策](03-current-decisions.md)：当前仍然有效的跨领域决策与边界。
+- [人类入口](human/README.md)：维护者理解系统目标与接手顺序的起点。
+- [Code AI 入口](code-ai/README.md)：实现类 agent profile 与其支撑材料。
+
+## 主题地图
+
+- [Governance](governance/README.md)：边界、文档协议、流程门禁与生成的门禁摘要。
+- [Validation](validation/README.md)：验证记录与证据索引。
+
+首次新增某个主题的权威文档时，再为该主题创建目录 MOC 并从本节链接。不要为尚无内容的主题预建空入口。
+
+## 链接规则
+
+- 只用相对路径的标准 Markdown 链接，不使用 Obsidian wikilink。
+- 默认发现路径不链接已登记过程区内的文件。
+- MOC 只负责发现：角色说明写一句话，业务规则留在对应权威文档。
+- 一类知识只有一个首要权威；本文件不复制任何权威文档的内容。
