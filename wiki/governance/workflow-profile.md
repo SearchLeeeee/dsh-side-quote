@@ -4,7 +4,7 @@
 > 本文件由 `factory init` / `factory upgrade` 从 `.factory/factory.yaml` 生成。
 > 需要调整时改 `factory.yaml`，再运行 `factory upgrade`；不要直接改本文件。
 > 本文件必须与 `.factory/factory.yaml` 保持同步，两者不一致时以 `factory.yaml` 为准。
-> 生成时间：`2026-11-15`。
+> 生成时间：`2026-11-16`。
 
 所有 factory 技能在动手前都会先读本文件（配合 `.factory/local.yaml`），用它确认
 owner、命令、验证要求、流程门禁与安全边界。它是当前仓库的工作契约摘要。
@@ -58,6 +58,7 @@ owner 责任路径决定「谁有权改哪里」。路径重叠或职责空白�
 
 - **静态检查** (`lint`): `node --check code/index.js`; `node --check code/client.js`
 - **单元/集成测试** (`test`): `node --test "code/test/**/*.test.mjs"`
+- **端到端测试** (`e2e`): `node --test "code/test/e2e/**/*.test.mjs"`
 - **验收验证** (`verify`): `node --check code/index.js`; `node --check code/client.js`; `node --test "code/test/**/*.test.mjs"`
 
 命令为空表示该项目尚未定义该命令。未定义的命令不得在对话中临时发明，也不得据此

@@ -45,7 +45,8 @@ commands:
   typecheck: []
   test:
   - node --test "code/test/**/*.test.mjs"
-  e2e: []
+  e2e:
+  - node --test "code/test/e2e/**/*.test.mjs"
   dev: []
   verify:
   - node --check code/index.js

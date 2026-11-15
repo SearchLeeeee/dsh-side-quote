@@ -1,7 +1,7 @@
 # Code AI 协作入口
 
 > 项目：dsh-side-quote（`dsh-side-quote`）
-> 本页由工厂模板生成：版本 0.1.0，日期 2026-11-15。
+> 本页由工厂模板生成：版本 0.1.0，日期 2026-11-16。
 > 修改本页前先读 [_blocks/README.md](_blocks/README.md) 与 [_manifests/README.md](_manifests/README.md)。
 
 ## 1. 这个目录是什么

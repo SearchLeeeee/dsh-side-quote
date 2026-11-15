@@ -2,7 +2,7 @@
 
 本目录（`wiki/`）是 dsh-side-quote 的长期文档权威根，本文件是唯一导航入口
 （root MOC）。代码在 `code/`，文档在 `wiki/`；两者描述同一件事的两个面。冲突
-裁决见[文件权威地图](02-file-authority-map.md)，生成日期 `2026-11-15`。
+裁决见[文件权威地图](02-file-authority-map.md)，生成日期 `2026-11-16`。
 
 过程区包括内置的 Feature、Quick Change、手动维护工作区，
 以及 [流程摘要](governance/workflow-profile.md)明确登记的附加根目录。它们默认不进入
