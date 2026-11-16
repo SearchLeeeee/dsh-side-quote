@@ -1,23 +1,27 @@
 /**
  * E2E layer, format regression: E-04 from `core/testing-and-acceptance.md` §3.
  *
- * Plain `node:test`, zero dependencies. Same environment variables and skip
- * rules as `quote-flow.test.mjs`.
+ * Plain `node:test`, zero dependencies. Same environment variables, evidence
+ * requirement and skip rules as `quote-flow.test.mjs`.
  *
- * Workspace fixture the operator must provide: `samples/` holding one sample of
- * each non-text preview format (`report.pdf`, `image.png`, `table.xlsx`,
- * `doc.docx`, `page.html`).
+ * Workspace fixture the operator must provide: `notes/a.md` (a whitelisted
+ * format, used as the positive control), `notes/server.pem` (sensitive name
+ * outside the whitelist) and one sample of each non-text preview format under
+ * `samples/`: `report.pdf`, `image.png`, `table.xlsx`, `doc.docx`, `page.html`.
  *
- * The automated part of E-04 is "no quote button for a format outside the
- * whitelist". The second half — "the preview looks the same as without the
- * plugin" — is the manual regression layer (testing-and-acceptance §4.3); these
- * screenshots are the comparison material, not the verdict.
+ * The automated half of E-04 is "no quote button for a format outside the
+ * whitelist". The positive control runs first **in the same page**, so a preview
+ * that simply renders slowly can never fake a pass: the button is proven to
+ * appear for `.md` before each absence is asserted. The second half — "the
+ * preview looks the same as without the plugin" — is the manual regression layer
+ * (testing-and-acceptance §4.3); these screenshots are comparison material, not
+ * the verdict.
  */
 import assert from 'node:assert/strict'
 import { after, test } from 'node:test'
 import {
-  SKIP_NO_DRIVER, connectCdp, openFilePreview, openPage, readE2eConfig, readQuoteButton,
-  resolveCdpWebSocketUrl, resolveSkipReason,
+  SKIP_NO_DRIVER, connectCdp, describeRun, openFilePreview, openPage, readE2eConfig, readQuoteButton,
+  resolveCdpWebSocketUrl, resolveSkipReason, waitForQuoteButton,
 } from './cdp.mjs'
 
 const config = readE2eConfig()
@@ -27,6 +31,7 @@ let browser
 if (skipReason === false) {
   try {
     browser = await connectCdp(await resolveCdpWebSocketUrl(config.cdp))
+    console.log(describeRun(config))
   } catch (error) {
     skipReason = `${SKIP_NO_DRIVER}（CDP 端点不可达：${error.message}）`
   }
@@ -36,7 +41,15 @@ after(async () => {
   browser?.close()
 })
 
-/** Formats the plugin must stay out of, with their fixture names. */
+/** Run identity every screenshot sidecar records. */
+const evidence = {
+  evidenceDir: config.evidenceDir,
+  baseUrl: config.baseUrl,
+  port: config.port,
+  profile: config.profile,
+}
+
+/** Formats the plugin must stay out of, with their fixture locations. */
 const FORMATS = [
   { fileName: 'report.pdf', label: 'PDF', directories: ['samples'] },
   { fileName: 'image.png', label: 'PNG', directories: ['samples'] },
@@ -46,28 +59,21 @@ const FORMATS = [
   { fileName: 'server.pem', label: 'PEM', directories: ['notes'] },
 ]
 
-for (const format of FORMATS) {
-  test(`E-04 ${format.label}：预览可打开且不出现引用按钮`, { skip: skipReason }, async () => {
-    const page = await openPage(browser, config.baseUrl)
-    try {
-      await openFilePreview(page, { directories: format.directories, fileName: format.fileName })
-      // The preview opened (the tab is there); the plugin must contribute nothing.
-      const state = await readQuoteButton(page)
-      assert.equal(state.present, false, `${format.fileName} must not show a quote button`)
-      await page.screenshot(`E-04-${format.label.toLowerCase()}`, config.evidenceDir)
-    } finally {
-      await page.close()
-    }
-  })
-}
-
-test('E-04 HTML：白名单明确排除，按钮不出现', { skip: skipReason }, async () => {
+test('E-04 其他格式零影响：白名单格式先出现按钮，其余格式逐一无按钮', { skip: skipReason }, async () => {
   const page = await openPage(browser, config.baseUrl)
   try {
-    await openFilePreview(page, { directories: ['samples'], fileName: 'page.html' })
-    // I001-F02 owns HTML; F01 must not add a control here.
-    const state = await readQuoteButton(page)
-    assert.equal(state.present, false, 'HTML previews must stay untouched in I001-F01')
+    // Positive control: the same page must first show the button for a whitelisted file.
+    await openFilePreview(page, { directories: ['notes'], fileName: 'a.md' })
+    const control = await waitForQuoteButton(page, false)
+    assert.equal(control.present, true, 'the positive control must show the quote button for a.md')
+    await page.screenshot('E-04-0-positive-control', evidence)
+
+    for (const format of FORMATS) {
+      await openFilePreview(page, { directories: format.directories, fileName: format.fileName })
+      const state = await readQuoteButton(page)
+      assert.equal(state.present, false, `${format.fileName} must not show a quote button`)
+      await page.screenshot(`E-04-${format.label.toLowerCase()}`, evidence)
+    }
   } finally {
     await page.close()
   }

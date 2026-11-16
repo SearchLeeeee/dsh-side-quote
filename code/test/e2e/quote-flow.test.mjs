@@ -5,18 +5,20 @@
  * Plain `node:test`, zero dependencies, Node 24 globals only. The suite connects
  * to an already-running isolated DSH instance and an external Chromium over CDP:
  *
- *   SIDE_QUOTE_E2E_BASE_URL   the instance URL, token included (default http://127.0.0.1:3181)
- *   SIDE_QUOTE_E2E_CDP        `ws://…` or `http://host:port` of the browser
- *   SIDE_QUOTE_E2E_EVIDENCE_DIR  optional; screenshots are written here
+ *   SIDE_QUOTE_E2E_BASE_URL       the instance URL, token included (default http://127.0.0.1:3181)
+ *   SIDE_QUOTE_E2E_CDP            `ws://…` or `http://host:port` of the browser
+ *   SIDE_QUOTE_E2E_EVIDENCE_DIR   required: screenshots and their sidecars land here
+ *   SIDE_QUOTE_E2E_PROFILE        optional: profile name recorded in the sidecars
  *
- * Missing driver or instance makes every test `skip`, never pass.
+ * A missing driver, instance or evidence directory makes every test `skip`,
+ * never pass. Port 3081 (the operator's live instance) is refused unless
+ * `SIDE_QUOTE_E2E_ALLOW_LIVE=1` is set.
  *
  * Workspace fixture the operator must provide inside the instance's workspace:
  *   notes/a.md   containing `quick brown fox` and `second bullet item`
  *   notes/b.md   containing `different document body`
- *   .env         containing `DEMO_TOKEN=placeholder` (hidden entries must be shown)
  *   notes/secret.md   containing `DEMO_SECRET=placeholder` (sensitive name, quotable format)
- *   notes/server.pem  a sensitive name outside the whitelist (no button)
+ *   .env         containing `DEMO_TOKEN=placeholder` (hidden in the Files page, so not driven here)
  *
  * What the browser can prove: the composer renders a quote's summary (label,
  * title, detail, body). The raw `text` handed to `insertQuote` is proven by the
@@ -26,10 +28,10 @@
 import assert from 'node:assert/strict'
 import { after, test } from 'node:test'
 import {
-  POINTER_HEAD, QUOTE_LABEL, SENSITIVE_WARNING, SKIP_NO_DRIVER, SOURCE_HEAD, activate,
-  connectCdp, disablePlugin, openFilePreview, openPage, quoteButtonExpression, readComposerText,
-  readE2eConfig, readQuoteButton, resolveCdpWebSocketUrl, resolveSkipReason, selectPhrase,
-  waitForNotice, waitForQuoteButton,
+  ERROR_COPY, POINTER_LABEL, QUOTE_LABEL, SENSITIVE_WARNING, SKIP_NO_DRIVER, SOURCE_LABEL, activate,
+  connectCdp, describeRun, disablePlugin, openFilePreview, openPage, quoteButtonExpression,
+  readComposerText, readE2eConfig, readQuoteButton, resolveCdpWebSocketUrl, resolveSkipReason,
+  selectPhrase, waitForNotices, waitForQuoteButton,
 } from './cdp.mjs'
 
 const config = readE2eConfig()
@@ -39,6 +41,7 @@ let browser
 if (skipReason === false) {
   try {
     browser = await connectCdp(await resolveCdpWebSocketUrl(config.cdp))
+    console.log(describeRun(config))
   } catch (error) {
     // An unreachable endpoint is still "no driver", and never a pass.
     skipReason = `${SKIP_NO_DRIVER}（CDP 端点不可达：${error.message}）`
@@ -49,16 +52,24 @@ after(async () => {
   browser?.close()
 })
 
+/** Run identity every screenshot sidecar records. */
+const evidence = {
+  evidenceDir: config.evidenceDir,
+  baseUrl: config.baseUrl,
+  port: config.port,
+  profile: config.profile,
+}
+
 /**
  * Run one test against a fresh page, closing it afterwards.
  * @param {string} name - test name.
- * @param {(page: object, evidence: string) => Promise<void>} body - test body.
+ * @param {(page: object, shot: (label: string) => Promise<string>) => Promise<void>} body - test body.
  */
 function scenario(name, body) {
   test(name, { skip: skipReason }, async () => {
     const page = await openPage(browser, config.baseUrl)
     try {
-      await body(page, (label) => page.screenshot(label, config.evidenceDir))
+      await body(page, (label) => page.screenshot(label, evidence))
     } finally {
       await page.close()
     }
@@ -82,7 +93,7 @@ async function waitForComposerDelta(page, before, timeoutMs = 15000) {
 function assertRelative(composer, relativePath) {
   assert.ok(composer.includes(relativePath), `the composer must name ${relativePath}: ${JSON.stringify(composer)}`)
   assert.equal(/[A-Za-z]:[\\/]/u.test(composer), false, 'no absolute Windows path may reach the composer')
-  assert.equal(composer.includes(`${SOURCE_HEAD}C`), false)
+  assert.equal(composer.includes(`${SOURCE_LABEL}C`), false)
 }
 
 scenario('E-01 首次引用闭环：划词 → 按钮可用 → 真实鼠标点击 → 引用块入框', async (page, shot) => {
@@ -117,7 +128,7 @@ scenario('E-02 同文件再引：第二次插入指针块，不含原文', async
   await activate(page, quoteButtonExpression(), 'the quote button')
   const delta = await waitForComposerDelta(page, beforeSecond)
 
-  assert.ok(delta.includes(POINTER_HEAD[0]), `the second quote must be a pointer block: ${JSON.stringify(delta)}`)
+  assert.ok(delta.includes(POINTER_LABEL), `the second quote must be a pointer block: ${JSON.stringify(delta)}`)
   assert.ok(delta.includes('notes/a.md'), 'the pointer must name the source path')
   assert.equal(delta.includes(second), false, 'the pointer block must not repeat the excerpt')
   await shot('E-02-1-pointer')
@@ -132,11 +143,11 @@ scenario('E-03 跨文件独立：另一个文件仍是原文块', async (page, s
   const delta = await waitForComposerDelta(page, before)
   assert.ok(delta.includes(excerpt), 'the other file must be quoted as an original block')
   assertRelative(delta, 'notes/b.md')
-  assert.equal(delta.includes(POINTER_HEAD[0]), false, 'a different file must not degrade to a pointer')
+  assert.equal(delta.includes(POINTER_LABEL), false, 'a different file must not degrade to a pointer')
   await shot('E-03-1-other-file')
 })
 
-scenario('E-05 敏感文件：原样插入且恰好一条 info 警示', async (page, shot) => {
+scenario('E-05 敏感文件：原样插入且恰好一条 info 警示、没有 error 通知', async (page, shot) => {
   // `.env` is a hidden entry in the Files tree, so the browser case uses
   // `notes/secret.md`: a whitelisted format whose name hits the sensitive
   // `*secret*` fragment. It exercises the same "insert as-is + one info" path.
@@ -148,7 +159,16 @@ scenario('E-05 敏感文件：原样插入且恰好一条 info 警示', async (p
   const delta = await waitForComposerDelta(page, before)
   assert.ok(delta.includes(excerpt), 'the sensitive file is inserted as-is')
   assertRelative(delta, 'notes/secret.md')
-  await waitForNotice(page, SENSITIVE_WARNING)
+
+  const notices = await waitForNotices(
+    page,
+    (list) => list.some((notice) => SENSITIVE_WARNING.some((warning) => notice.text.includes(warning))),
+    { label: 'the sensitive-content warning' },
+  )
+  const sensitive = notices.filter((notice) => SENSITIVE_WARNING.some((warning) => notice.text.includes(warning)))
+  assert.equal(sensitive.length, 1, `exactly one sensitive notice is allowed, saw ${JSON.stringify(notices)}`)
+  const raised = notices.filter((notice) => ERROR_COPY.some((copy) => notice.text.includes(copy)))
+  assert.deepEqual(raised, [], `a successful sensitive quote must not raise an error notice: ${JSON.stringify(raised)}`)
   await shot('E-05-1-sensitive')
 })
 

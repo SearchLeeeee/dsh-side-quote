@@ -4,59 +4,144 @@
  * Plain Node 24: global `fetch` and global `WebSocket`, no npm package, no
  * runtime dependency, nothing shipped in the artifact (`files` excludes `test`).
  *
- * Two environment facts come from outside this repository:
+ * Environment facts come from outside this repository:
  *   - `SIDE_QUOTE_E2E_BASE_URL`  the isolated DSH instance (default http://127.0.0.1:3181)
  *   - `SIDE_QUOTE_E2E_CDP`       a Chromium DevTools endpoint (`ws://…` or `http://host:port`)
- *   - `SIDE_QUOTE_E2E_EVIDENCE_DIR`  optional; where screenshots are written
+ *   - `SIDE_QUOTE_E2E_EVIDENCE_DIR`  where screenshots and their sidecars are written
+ *   - `SIDE_QUOTE_E2E_PROFILE`   optional; the profile name recorded in the sidecars
+ *   - `SIDE_QUOTE_E2E_ALLOW_LIVE`  optional escape hatch for the live-port guard
  *
  * A missing driver or a missing instance makes the suites `skip`, never pass.
  * Every interaction below goes through public, human-visible affordances —
  * visible text, `aria-label`, `placeholder`, roles — and real mouse/key input.
  * No builtin plugin data attribute, CSS-module class or DOM hierarchy is used.
+ *
+ * The copy this driver asserts on is read from `code/client.js` itself, so the
+ * harness can never drift from the shipped dictionaries or content constants.
  */
+import { execFileSync } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { loadClientInternals } from '../load-client.mjs'
+
+const { internals } = await loadClientInternals()
 
 /** The isolated verification port. Never the operator's live 3081. */
 export const DEFAULT_BASE_URL = 'http://127.0.0.1:3181'
 
+/** The operator's live port: this driver refuses it unless explicitly allowed. */
+export const LIVE_PORT = '3081'
+
 /** Literal skip reasons required by the contract. */
 export const SKIP_NO_INSTANCE = '未提供 DSH 实例'
 export const SKIP_NO_DRIVER = '未提供浏览器驱动'
+export const SKIP_NO_EVIDENCE_DIR = '未提供证据目录（SIDE_QUOTE_E2E_EVIDENCE_DIR）'
+export const SKIP_LIVE_INSTANCE = '拒绝对 live 端口 3081 运行端到端用例'
 
 /** Fixed viewport, so every screenshot can name the size it was taken at. */
 export const VIEWPORT = { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false }
 
-/** Copy the plugin renders, in both shipped dictionaries. */
-export const QUOTE_LABEL = ['引用', 'Quote']
-export const SENSITIVE_WARNING = ['已引用可能含敏感内容的文件', 'Quoted a file that may contain sensitive content']
-export const POINTER_HEAD = ['已引用过：', 'Already quoted: ']
-export const SOURCE_HEAD = '来源：'
+/** UI copy, read from the shipped dictionaries. */
+export const QUOTE_LABEL = [...new Set(Object.values(internals.LOCALES).map((dictionary) => dictionary['quote.button']))]
+/** The language-independent prefix of the sensitive-content warning, per dictionary. */
+export const SENSITIVE_WARNING = [...new Set(Object.values(internals.LOCALES)
+  .map((dictionary) => String(dictionary['info.sensitive']).split('{path}')[0]))]
+/** Content copy: never localized, so it is one literal from the bundle. */
+export const POINTER_LABEL = internals.POINTER_LABEL
+export const SOURCE_LABEL = internals.SOURCE_LABEL
+/** Every shipped error notice, so a case can assert that none was raised. */
+export const ERROR_COPY = [...new Set(Object.values(internals.LOCALES)
+  .flatMap((dictionary) => Object.entries(dictionary)
+    .filter(([key]) => key.startsWith('error.'))
+    .map(([, value]) => String(value).split('{')[0])))]
+
+/**
+ * Strip credentials and query values from an instance URL.
+ *
+ * The boot URL carries a session token; evidence is committed, so it records the
+ * origin and path only.
+ * @param {string} url - the instance URL.
+ * @returns {string} the URL without its query or fragment.
+ */
+export function redactUrl(url) {
+  try {
+    const parsed = new URL(url)
+    return `${parsed.origin}${parsed.pathname}`
+  } catch {
+    return String(url).split(/[?#]/u)[0]
+  }
+}
+
+/**
+ * One line describing the connected instance, printed by every suite so the run
+ * summary names the port and profile it actually used.
+ * @param {object} config - from {@link readE2eConfig}.
+ * @returns {string} the summary line.
+ */
+export function describeRun(config) {
+  return `[side-quote e2e] instance=${redactUrl(config.baseUrl)} port=${config.port} profile=${config.profile}`
+    + ` driver=${config.cdp} evidence=${config.evidenceDir === '' ? '(none)' : config.evidenceDir}`
+}
 
 /**
  * Read the e2e configuration from the environment.
  * @param {NodeJS.ProcessEnv} [env] - environment source.
- * @returns {{baseUrl: string, baseUrlProvided: boolean, cdp: string, evidenceDir: string}} configuration.
+ * @returns {{baseUrl: string, baseUrlProvided: boolean, port: string, cdp: string, evidenceDir: string, profile: string}} configuration.
  */
 export function readE2eConfig(env = process.env) {
   const baseUrl = (env.SIDE_QUOTE_E2E_BASE_URL ?? '').trim()
+  const resolved = baseUrl === '' ? DEFAULT_BASE_URL : baseUrl.replace(/\/+$/u, '')
   return {
-    baseUrl: baseUrl === '' ? DEFAULT_BASE_URL : baseUrl.replace(/\/+$/u, ''),
+    baseUrl: resolved,
     baseUrlProvided: baseUrl !== '',
+    port: portOf(resolved),
     cdp: (env.SIDE_QUOTE_E2E_CDP ?? '').trim(),
     evidenceDir: (env.SIDE_QUOTE_E2E_EVIDENCE_DIR ?? '').trim(),
+    profile: (env.SIDE_QUOTE_E2E_PROFILE ?? '').trim() || 'unspecified',
+  }
+}
+
+/**
+ * Read the port out of an instance URL.
+ * @param {string} url - instance URL.
+ * @returns {string} the port, or an empty string when it cannot be read.
+ */
+function portOf(url) {
+  try {
+    const parsed = new URL(url)
+    if (parsed.port !== '') return parsed.port
+    return parsed.protocol === 'https:' ? '443' : '80'
+  } catch {
+    return ''
   }
 }
 
 /**
  * Decide why this suite cannot run, or `false` when it can.
  * @param {object} config - from {@link readE2eConfig}.
+ * @param {NodeJS.ProcessEnv} [env] - environment source for the live-port escape hatch.
  * @returns {Promise<string|false>} the literal skip reason, or false.
  */
-export async function resolveSkipReason(config) {
+export async function resolveSkipReason(config, env = process.env) {
   if (config.cdp === '') return SKIP_NO_DRIVER
+  if (config.evidenceDir === '') return SKIP_NO_EVIDENCE_DIR
+  if (config.port === LIVE_PORT && (env.SIDE_QUOTE_E2E_ALLOW_LIVE ?? '') !== '1') {
+    return `${SKIP_LIVE_INSTANCE}（${config.baseUrl}；如确需运行，设置 SIDE_QUOTE_E2E_ALLOW_LIVE=1）`
+  }
   if (!(await isInstanceUp(config.baseUrl))) return SKIP_NO_INSTANCE
   return false
+}
+
+/**
+ * Read the current git revision for the evidence sidecar.
+ * @returns {string} the revision, or `unknown` outside a work tree.
+ */
+export function gitRevision() {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+  } catch {
+    return 'unknown'
+  }
 }
 
 /**
@@ -297,53 +382,36 @@ export async function openPage(client, url) {
       await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...base })
     },
     /**
-     * Click the element an expression resolves to.
-     * @param {string} expression - expression resolving to an Element.
-     * @param {string} [label] - failure label.
+     * Take a screenshot and write its evidence sidecar.
+     *
+     * The directory is mandatory: a case that must produce evidence cannot pass
+     * by writing nothing. The sidecar carries the identity a reviewer needs to
+     * bind the image to a build, an instance and a viewport.
+     * @param {string} name - case id, used as the file stem.
+     * @param {{evidenceDir: string, baseUrl: string, port: string, profile: string}} evidence - run identity.
+     * @returns {Promise<string>} the written image path.
      */
-    async clickElement(expression, label) {
-      const point = await page.centerOf(expression)
-      if (point === null) throw new Error(`could not find a clickable element: ${label ?? expression}`)
-      await page.mouseClick(point.x, point.y)
-    },
-    /**
-     * Type text into the focused element through the input pipeline.
-     * @param {string} text - text to insert.
-     */
-    async typeText(text) {
-      await send('Input.insertText', { text })
-    },
-    /**
-     * Replace the value of the first input matching a placeholder.
-     * @param {string[]} placeholders - accepted placeholder strings.
-     * @param {string} text - text to enter.
-     */
-    async fillByPlaceholder(placeholders, text) {
-      const literal = JSON.stringify(placeholders)
-      const found = await page.evaluate(`(() => {
-        const wanted = ${literal};
-        const input = [...document.querySelectorAll('input, textarea')]
-          .find((element) => wanted.includes(element.getAttribute('placeholder') || ''));
-        if (!input) return false;
-        input.focus();
-        input.select();
-        return true;
-      })()`)
-      if (!found) throw new Error(`no input with placeholder ${placeholders.join(' / ')}`)
-      await page.typeText(text)
-    },
-    /**
-     * Take a screenshot; saved when an evidence directory is configured.
-     * @param {string} name - file name without extension.
-     * @param {string} [evidenceDir] - destination directory.
-     * @returns {Promise<string|null>} the written path, or null.
-     */
-    async screenshot(name, evidenceDir) {
+    async screenshot(name, evidence) {
+      if (evidence === undefined || evidence.evidenceDir === '') {
+        throw new Error(`${SKIP_NO_EVIDENCE_DIR}：${name} 无法写出证据`)
+      }
       const { data } = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
-      if (evidenceDir === undefined || evidenceDir === '') return null
-      await mkdir(evidenceDir, { recursive: true })
-      const path = join(evidenceDir, `${name}.png`)
+      await mkdir(evidence.evidenceDir, { recursive: true })
+      const path = join(evidence.evidenceDir, `${name}.png`)
       await writeFile(path, Buffer.from(data, 'base64'))
+      await writeFile(
+        join(evidence.evidenceDir, `${name}.json`),
+        `${JSON.stringify({
+          case: name,
+          gitRevision: gitRevision(),
+          baseUrl: redactUrl(evidence.baseUrl),
+          port: evidence.port,
+          profile: evidence.profile,
+          viewport: `${VIEWPORT.width}x${VIEWPORT.height}`,
+          capturedAt: new Date().toISOString(),
+        }, null, 2)}\n`,
+        'utf8',
+      )
       return path
     },
     /** Close the tab and release the recorder. */
@@ -607,44 +675,43 @@ export async function readComposerText(page) {
 }
 
 /**
- * Wait until the composer contains a literal string.
+ * Read the notice regions the composer renders (banners and inline notices).
+ *
+ * Notices are located by ARIA live-region semantics only, and each entry keeps
+ * its role so a caller can tell an `error` from an `info` without guessing at
+ * markup or class names.
  * @param {object} page - the page.
- * @param {string} needle - expected visible text.
- * @param {number} [timeoutMs] - bound.
- * @returns {Promise<string>} the composer text.
+ * @returns {Promise<{role: string, text: string}[]>} the visible notices.
  */
-export async function waitForComposerText(page, needle, timeoutMs = 15000) {
-  const deadline = Date.now() + timeoutMs
-  let text = ''
-  for (;;) {
-    text = await readComposerText(page)
-    if (text.includes(needle)) return text
-    if (Date.now() > deadline) {
-      throw new Error(`composer never contained ${JSON.stringify(needle)}; it holds ${JSON.stringify(text)}`)
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100))
-  }
+export async function readNotices(page) {
+  return page.evaluate(`(() => {
+    const selector = '[role="alert"], [role="status"], [role="log"], [aria-live]';
+    return [...document.querySelectorAll(selector)]
+      .map((element) => ({
+        role: element.getAttribute('role') || ('aria-live:' + (element.getAttribute('aria-live') || '')),
+        text: (element.innerText || element.textContent || '').replace(/\\s+/gu, ' ').trim(),
+      }))
+      .filter((entry) => entry.text !== '');
+  })()`)
 }
 
 /**
- * Wait until any visible notice shows one of the given strings.
+ * Wait until the notice regions satisfy a predicate.
  * @param {object} page - the page.
- * @param {string[]} needles - accepted substrings.
- * @param {number} [timeoutMs] - bound.
- * @returns {Promise<string>} the visible text that matched.
+ * @param {(notices: {role: string, text: string}[]) => boolean} predicate - acceptance test.
+ * @param {{timeoutMs?: number, label?: string}} [options] - bound and failure label.
+ * @returns {Promise<{role: string, text: string}[]>} the notices at acceptance.
  */
-export async function waitForNotice(page, needles, timeoutMs = 15000) {
+export async function waitForNotices(page, predicate, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 15000
   const deadline = Date.now() + timeoutMs
-  const literal = JSON.stringify(needles)
+  let notices = []
   for (;;) {
-    const hit = await page.evaluate(`(() => {
-      const wanted = ${literal};
-      const body = document.body ? document.body.innerText : '';
-      const found = wanted.find((needle) => body.includes(needle));
-      return found === undefined ? null : found;
-    })()`)
-    if (hit !== null) return hit
-    if (Date.now() > deadline) throw new Error(`no notice matched ${needles.join(' / ')} within ${timeoutMs}ms`)
+    notices = await readNotices(page)
+    if (predicate(notices)) return notices
+    if (Date.now() > deadline) {
+      throw new Error(`no notice matched ${options.label ?? 'the predicate'}; saw ${JSON.stringify(notices)}`)
+    }
     await new Promise((resolve) => setTimeout(resolve, 100))
   }
 }
@@ -681,6 +748,22 @@ export async function openFilePreview(page, options) {
   const fileName = options.fileName
   const directories = options.directories ?? []
   await waitForAppShell(page, timeoutMs)
+  // A fresh profile starts with the column collapsed, so no tab strip and no
+  // guide entry exist yet; its toggle is the only public way in.
+  if ((await page.evaluate('(() => document.querySelectorAll(\'[role="tab"]\').length > 0)()')) !== true) {
+    const openSidebar = `(() => {
+      const wanted = ['打开右侧边栏', 'Open right sidebar', 'Open sidebar'];
+      return [...document.querySelectorAll('[aria-label]')]
+        .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
+    })()`
+    if ((await page.evaluate(`(() => ${openSidebar} !== null)()`)) === true) {
+      await activate(page, openSidebar, 'the right sidebar toggle')
+      await page.waitFor('(() => document.querySelectorAll(\'[role="tab"]\').length > 0)()', {
+        timeoutMs,
+        label: 'the right sidebar tab strip',
+      })
+    }
+  }
   if (await activatePreviewTab(page, fileName)) {
     await waitForPreviewTab(page, fileName, timeoutMs)
     await new Promise((resolve) => setTimeout(resolve, 600))
@@ -697,6 +780,13 @@ export async function openFilePreview(page, options) {
   for (const directory of directories) {
     const row = clickableByText([directory])
     await page.waitFor(`(() => ${row} !== null)()`, { timeoutMs, label: `the directory row ${directory}` })
+    // A directory row is a toggle: clicking an already-expanded one would hide
+    // the children the caller came for.
+    const expanded = await page.evaluate(`(() => {
+      const element = ${row};
+      return element === null ? null : element.getAttribute('aria-expanded');
+    })()`)
+    if (expanded === 'true') continue
     await activate(page, row, `the directory row ${directory}`)
     await new Promise((resolve) => setTimeout(resolve, 600))
   }
