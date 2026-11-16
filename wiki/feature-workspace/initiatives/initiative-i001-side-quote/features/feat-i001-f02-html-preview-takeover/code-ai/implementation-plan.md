@@ -238,8 +238,30 @@
   5. `focusedTarget(iframeElement)` 的非焦点用法属"实现能力 > 文档承诺"，DSH 收紧时表现为置灰
      而非插错文件。
 
+## 8. 评审修复项（修订 2）
+
+固定评审门（`wiki/code-ai/review-agent.md`）对 `27d60ee..391921a` 的结论为**有条件通过**：
+无 Blocker，1 项 High、5 项 Warning、6 项 Nit。处置如下；未受影响的结论（契约一致性、安全面、
+闸门真值表、接缝等价性、五处实现层偏离的接受判定、简化门）保留，不重复评审。
+
+| 发现 | 处置 | 责任人 |
+| --- | --- | --- |
+| H-1 登记的 e2e/verify 命令缺少串行约束，按命令表跑会因用例互相改实例状态而假失败 | `.factory/factory.yaml` 的 `test`/`e2e`/`verify` 统一加 `--test-concurrency=1`，运行 `factory upgrade` 重新生成 Workflow Profile，配置与生成文件同批提交；`wiki/code-ai/project-facts.md` §4 同步命令与理由。**不接受"只在 README 里写"** | 编排者 |
+| W-1 门控顺序变化使"父文档选区消失"的点击提示由 `error.ownership` 变为 `error.noSelection`，且无用例 | 补单元用例固定新语义（一条 `error.noSelection`、零插入、零记录、按钮禁用）并加实现注释；不回退门控顺序 | `core` |
+| W-2 U-28 的 blob 归零断言自证，卸载路径未证明 | 新增不手动释放的 source 并在 `disposeAll()` 后断言 `revoked === created` | `core` |
+| W-3 闸门禁用原因只在 `title`，`disabled` 控件能否弹出无证据 | 保留按钮 `title`，另加 `aria-describedby` + 视觉隐藏说明（内联样式，不新增样式表），并补单元断言与 E-16 的 DOM 断言 | `core` |
+| W-4 F01 的 E-04/AC-7 与 `implementation.md` §5 未标注被本 Feature 改写 | **登记为本 Feature 的已知文档口径差异，不改写 F01 已闭环记录**（`AGENTS.md`：不得改写原完成历史）。长期 Wiki 合并时以 F02 的 `core/testing-and-acceptance.md` §6 为准 | 编排者 |
+| W-5 测试头注释声称"红→绿"但无证据 | 注释改为如实区分（U-23…U-25 等先写用例后实现；U-26…U-31 与组件用例为接线后补写的回归覆盖） | `core` |
+| N-1 `</` 转义未覆盖 `<!--` 序列，页面含 `<!--<script` 时桥不建立（fail-closed） | 同一转义函数补 `<!--` → `<\!--`，并在 bootstrap 用例里补断言（保持 JSON 编码方案，不改 base64） | `core` |
+| N-2 `unmounted` 字段恒为 false | 保留并注明它只服务"detach 已删条目后定时器仍可能到达"的防御路径 | `core` |
+| N-3 `open()` 非闸门失败复用闸门文案 | 新增失败文案键，闸门为假仍用闸门文案，其余异常用新键 | `core` |
+| N-4 `cdp.mjs` 头注释称 `SIDE_QUOTE_E2E_PROFILE` 可选 | 改为必需 | `core` |
+| N-5 文案称"开发者工具"，平台设置项标签为"显示代码工作视图" | **登记为后续措辞项**：平台标签可变，本版不把平台标签写进插件文案，README 已并列两种叫法 | 编排者 |
+| N-6 去重键实现为"仅页目标"，workbench C-16 与本计划 §2.2-8 写"原因 + 页目标" | 实现更严格且与 `core/implementation.md` §9 一致；**合并长期文档时按实现口径统一措辞**，不回改 workbench 历史记录 | 编排者 |
+
 ## 计划修订记录
 
 | 修订 | 日期 | 改动原因 | 受影响 items | 批准 |
 | --- | --- | --- | --- | --- |
 | 1 | 2026-11-16 | 初版：基于 F02 领域文档、F01 代码基线与 `0.2.2-rc.3` 平台取证建立；纳入 10 项实现层裁决（§2.2） | 全部 | 主编排者 |
+| 2 | 2026-11-16 | 评审门有条件通过：登记 H-1 与 W-1…W-5、N-1…N-6 的处置（§8），把 e2e 串行约束落到命令表，W-4/N-5/N-6 按"不改写历史 + 合并时统一"登记 | P7、P8、P9 + 配置与文档 | 主编排者 |
