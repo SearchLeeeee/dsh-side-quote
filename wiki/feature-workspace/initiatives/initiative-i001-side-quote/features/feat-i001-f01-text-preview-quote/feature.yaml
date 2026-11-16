@@ -2,7 +2,7 @@ id: I001-F01
 title: 文本预览划词引用闭环（通用核心 + 文本格式适配）
 leaf: true
 owner: core
-phase: implementation
+phase: review
 state: in-progress
 wave: 1
 depends_on: []
@@ -68,5 +68,5 @@ consistency_matrix:
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
 next_action:
-  skill: hl-feature-orchestrator
-  instruction: 按 code-ai/implementation-plan.md 的 P1-P7 顺序实现并同步派生文档
+  skill: wiki/code-ai/review-agent.md
+  instruction: 对 df693c1 的实现与文档同步跑固定评审门，无 Blocker/High 后进入独立验收

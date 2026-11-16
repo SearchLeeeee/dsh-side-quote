@@ -31,7 +31,7 @@
 
 ## 3. 技术栈摘要
 
-- JavaScript（浏览器 ES module，零构建、零运行时依赖）
+- JavaScript（浏览器 classic-script bundle + ESM 宿主半，零构建、零运行时依赖）
 - DSH 0.2.2-rc.3 client plugin（cordis slots / documentPreviews / conversation input）
 - Node 24 / pnpm 11（仅开发与本机安装）
 

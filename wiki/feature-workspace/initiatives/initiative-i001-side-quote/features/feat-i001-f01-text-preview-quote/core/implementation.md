@@ -88,10 +88,17 @@ REJECT（实现禁令）：
 
 ```js
 const own = safeTarget(buttonEl)            // 本按钮所在 tab
-const sel = safeTarget(selectionAnchorEl)   // 选区锚点所在 tab
-const ok = own && sel && own.sessionId === mountedSessionId
-  && own.occurrence && sel.occurrence && own.occurrence.id === sel.occurrence.id
+const sel = safeTarget(anchorElement)       // 选区锚点（anchorNode）所在 tab
+const end = safeTarget(focusElement)        // 选区终点（focusNode / range.endContainer）所在 tab
+const ok = own && sel && end
+  && own.sessionId === mountedSessionId
+  && own.occurrence && sel.occurrence && end.occurrence
+  && own.occurrence.id === sel.occurrence.id && own.occurrence.id === end.occurrence.id
 ```
+
+**起点与终点都必须判定**：跨预览体的选区在浏览器里是一条合法选区，只判锚点会让 A 的按钮
+读取到跨越到 B 的整段文本、却按 A 的路径写 `来源：`，并绕过 B 的敏感名警示（评审 H-1）。
+终点侧解析不到元素时按"置灰"处理，不得退化成只判锚点。
 
 只有在 e2e 证明该路径不可用时才按"减少能力"处理（只保留会话级校验并置灰多窗格歧义），
 并记入 README 取舍；不得猜测归属。地址读取途径本身已确认存在，无需降级。
@@ -125,8 +132,9 @@ const ok = own && sel && own.sessionId === mountedSessionId
   "防抖后点击"结果一致。
 - 已引用记录只在 `insertQuote` 返回 `true` 后写入；插入失败不得污染记录。
 - 一次点击最多产生一条通知（失败 → 一条 error；敏感命中且插入成功 → 一条 info）。
-- `summary` 只用于输入框内的可读展示，不承载来源路径：路径必须写进 `text`，因为只有
-  `text` 会进入发送给模型的消息正文。
+- `summary` 只用于输入框内的可读展示；其中 `title` 是同一来源路径的**展示副本**
+  （见 [quote-content-contract.md](quote-content-contract.md) §7），不进入消息正文。
+  **进入消息正文**的来源路径只有 `text` 里的 `来源：` 行，因为只有 `text` 会发送给模型。
 
 ## 5. 适配器接缝
 
@@ -189,7 +197,7 @@ const ok = own && sel && own.sessionId === mountedSessionId
 | 场景 | 行为 |
 | --- | --- |
 | 无屏幕会话（`mounted` 为空） | 按钮置灰；若因竞态点击到，`error` 通知，不插入 |
-| `sessions.scope()` 返回 `undefined` | `error` 通知，不插入 |
+| `sessions.scope()` 返回 `undefined` | 按钮置灰（状态计算即要求作用域可用）；竞态下点击则无可用通知通道，静默且不插入（见 §8.1） |
 | 选区为空或仅空白 | 按钮置灰；竞态下点击则 `error` 通知 |
 | 选区跨越两个预览体 | 按钮置灰（不支持） |
 | 归属校验不通过 | 按钮置灰 |
@@ -209,8 +217,17 @@ const ok = own && sel && own.sessionId === mountedSessionId
   返回 `false`；成功时平台内部执行 `focus()`。
 - 因此"插入后不抢焦点"的可实现含义是：**插件不主动移动焦点、不滚动、不清选区**；
   焦点回到输入框属于插入通道的固有行为，写入 `code/README.md` 的已知取舍。
-- 选区的读取时机仍是点击时刻；按钮必须在 `pointerdown` 上 `preventDefault()`，
+- 选区的读取时机仍是点击时刻；按钮必须在 **`mousedown`** 上 `preventDefault()`，
   以免浏览器在按下时折叠预览选区（否则点击时读到空选区）。该处理不触碰输入框 DOM。
+- 实现期实测结论：`pointerdown` 的 `preventDefault()` 会抑制兼容鼠标事件、存在吞掉后续
+  `click` 的风险，因此不采用；采用 `mousedown` 并由端到端用例证明点击确实到达处理器。
+
+**通知通道的真实边界（评审 W-4，已核实）**：`notify` 是**会话绑定**的通道
+（`conversation.input.for(scope).notify`）。因此当"没有屏幕会话（`mounted` 为空）"或
+"`sessions.scope(sessionId)` 为空"时，本插件没有可投递的通知位点，这两种状态下的竞态点击
+表现为静默且不插入。为减少静默面，按钮状态计算本身要求会话作用域可用，使这两种状态正常
+表现为置灰；其余失败分支（选区为空、归属不符、读取失败、插入被拒）都有会话作用域，
+各自只发一条 `error`。该边界记入 `code/README.md` 的已知取舍。
 
 ## 9. 可能改动的文件
 
@@ -226,9 +243,11 @@ const ok = own && sel && own.sessionId === mountedSessionId
 | `wiki/code-ai/project-facts.md` | 同步 §4 命令表与 §5 测试分层 |
 | `code/README.md` | 写入已知取舍条目 |
 
-`code/client.js` 预计显著增长。若单文件超过约 800 行，可在 `code/` 下拆分为多个被
-bundle 顺序引入的模块文件；拆分必须保持"无构建、纯 JS、`require()` 解析"的前提，且
-不改变 `package.json` 的 `files` 语义以外的东西。
+`code/client.js` 预计显著增长。实现期核实（评审 N-1）：客户端 bundle 由同源 **classic
+`<script src>`** 载入，`package.json` 的 `exports["./client"]` 与 `dsh.client` 只声明单一入口，
+`require()` 只能解析平台模块表；包内多文件只能走 `require.async` 的 chunk 机制，属新的加载
+时序与 HMR 风险面。因此本版**保持单文件**（实际 902 行 / 851 非空行），并把"不拆的理由"记入
+`code/README.md`，不按行数硬拆。
 
 ## 10. 跨域依赖
 

@@ -165,8 +165,33 @@
   3. 手写 bundle 与 `0.2.2-rc.3` 客户端接口强耦合，升级后必须重跑单元层与端到端层。
   4. 截断阈值固定 200 行 / 8000 字符，不可配置。
 
+## 8. 评审修复项（修订 2）
+
+评审门（`wiki/code-ai/review-agent.md`，对象 `39fa84d..df693c1`）结论为**有条件通过**，
+条件与处置如下。未受影响的部分（内容模板、截断、路径、白名单、敏感名单、记录、清理、
+零依赖）保留原结论，不重复评审。
+
+| 条件/发现 | 处置 | 责任人 |
+| --- | --- | --- |
+| H-1 归属校验只判锚点、未判终点，跨预览体选区会以错误来源插入并绕过敏感警示 | `resolveTargets` 增加终点侧（`focusNode`/`range.endContainer`）判定；新增 U-19（锚点 A、终点 B 置灰 + 同属 A 仍可用的护栏）；E-09 双窗格用例（环境不支持则记不适用） | `core` + 编排者 |
+| W-1 文档要求 `pointerdown`、实现用 `mousedown` | 回写 `core/implementation.md` §8.1：采用 `mousedown` 及理由（`pointerdown` 的 `preventDefault` 可能吞掉 `click`），并由 E-01 证明点击到达处理器 | 编排者 |
+| W-2 AC-16 与内容契约 §7 对 `summary` 是否含路径矛盾 | 澄清口径：进入消息正文的路径只有 `text`，`summary.title` 是展示副本；同步 AC-16、内容契约 §7 与 review profile | 编排者 |
+| W-3 E-05 用 `secret.md` 替代 `.env` 未回写、且未断言通知条数 | 回写 E-05 与 §4.2 的环境例外（Files 页隐藏 `.` 开头的项）；浏览器用例断言恰好一条 `info`、无 `error`；`.env` 浏览器用例记不适用，由 U-10/U-11 覆盖；另加 `server.pem` 反例 | `core` + 编排者 |
+| W-4 无会话/无作用域时 `error` 通知无可用通道 | 按钮状态计算要求会话作用域可用（正常表现为置灰）；`core/implementation.md` §8/§8.1 与 `code/README.md` 记录该边界；单测补置灰断言 | `core` + 编排者 |
+| W-5 E-04 缺少正向对照，可能假通过 | E-04 断言前先在同一页证明白名单 `.md` 出现按钮 | `core` |
+| W-6 过程记录 6 处死链 | 修正相对深度（`workbench.md` 4 处、两份 `feasibility/summary.md` 各 1 处） | 编排者 |
+| W-7 e2e 不拒绝 live 端口/不校验实例 | harness 拒绝 `3081`（除非显式 override），运行摘要记录实例端口与 profile | `core` |
+| W-8 截图证据默认不落盘、无 revision/实例/视口 | 证据目录改为必需；每张截图写 `.json` 伴生（git revision、baseURL+端口、视口、用例号） | `core` |
+| W-9 `project-facts.md` §3 仍称浏览器产物为 ES module | 改 `factory.yaml` 的 `project.stack` 与 §3 措辞，`factory upgrade` 同批提交 | 编排者 |
+| W-10 `a9369f3` 提交边界合并、夹带 F02 记录 | 不改写历史（`AGENTS.md` 禁止）；在交接中如实说明，后续按边界拆分 | 编排者 |
+| N-1 `client.js` 902 行超软阈值 | 核实 classic `<script>` 单入口后保持单文件，理由写入 `implementation.md` §9 与 `code/README.md` | 编排者 + `core` |
+| N-2 死代码 | 删除未被调用的 `actions.refresh`/`isDisposed`/`debouncer.isDisposed`/`basenameOf` 与未用 e2e helper | `core` |
+| N-3/N-4 README 措辞与示例 | 修正遮罩关闭时机、改为 PowerShell 示例并指向验收环境文档 | `core` |
+| N-5 e2e 硬编码文案副本 | 经 `load-client.mjs` 从 `internals` 读取固定常量 | `core` |
+
 ## 计划修订记录
 
 | 修订 | 日期 | 改动原因 | 受影响 items | 批准 |
 | --- | --- | --- | --- | --- |
 | 1 | 2026-11-15 | 初版：基于代码调研与 `0.2.2-rc.3` 位点取证建立 | 全部 | 主编排者 |
+| 2 | 2026-11-16 | 评审门有条件通过：新增 H-1 终点侧归属判定与 U-19/E-09，回写 W-1…W-9 的文档口径，登记 N-1…N-5 处置 | P5、P6、P8、P9 + 文档 | 主编排者 |

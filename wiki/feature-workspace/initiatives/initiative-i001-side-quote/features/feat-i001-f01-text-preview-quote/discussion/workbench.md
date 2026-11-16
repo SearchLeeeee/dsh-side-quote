@@ -162,13 +162,13 @@ Feature 范围内（由 I001-F02 以默认关闭的接管式渲染器承担）�
 
 ## Authority consistency check
 
-按 [文件权威地图](../../../../../02-file-authority-map.md) 核对与本 Feature 相关的现行权威：
+按 [文件权威地图](../../../../../../02-file-authority-map.md) 核对与本 Feature 相关的现行权威：
 
 | 权威文档 | 核对结论 |
 | --- | --- |
-| [03-current-decisions.md](../../../../../03-current-decisions.md) | 无冲突；本 Feature 不改变任何现行决策条目 |
-| [code-ai/project-facts.md](../../../../../code-ai/project-facts.md) | "零构建、零运行时依赖"成立（e2e 脚本属开发期工具，不入运行时依赖与制品）。但 §4 命令表与 §5 测试分层必须在本 Feature 实现阶段同步更新 |
-| [validation/README.md](../../../../../validation/README.md) | 一致；证据落 `verification.evidence_root`（`wiki/feature-workspace`），结论须可判定 |
+| [03-current-decisions.md](../../../../../../03-current-decisions.md) | 无冲突；本 Feature 不改变任何现行决策条目 |
+| [code-ai/project-facts.md](../../../../../../code-ai/project-facts.md) | "零构建、零运行时依赖"成立（e2e 脚本属开发期工具，不入运行时依赖与制品）。但 §4 命令表与 §5 测试分层必须在本 Feature 实现阶段同步更新 |
+| [validation/README.md](../../../../../../validation/README.md) | 一致；证据落 `verification.evidence_root`（`wiki/feature-workspace`），结论须可判定 |
 | `product/product-vision.md`、`implementation/frontend/`、`testing/` | 尚未创建（权威地图中为占位路径），无冲突面 |
 
 语义冲突：无。

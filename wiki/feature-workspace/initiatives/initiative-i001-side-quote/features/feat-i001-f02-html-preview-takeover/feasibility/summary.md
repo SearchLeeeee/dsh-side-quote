@@ -1,7 +1,7 @@
 # I001-F02 可行性结论摘要
 
 - 结论：`Conditionally feasible`（附条件可行）
-- 共享约束：[I001 可行性确认约束](../../feasibility/confirmed-constraints.md)（必读，不得重复论证）
+- 共享约束：[I001 可行性确认约束](../../../feasibility/confirmed-constraints.md)（必读，不得重复论证）
 - 依赖：`I001-F01` 提供核心插入与来源组装能力。
 
 ## 本 Feature 的成立条件
