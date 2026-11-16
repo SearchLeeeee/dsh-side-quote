@@ -2,31 +2,72 @@ id: I001-F02
 title: HTML 预览接管适配（默认关闭、显式开启）
 leaf: true
 owner: core
-phase: scope-gate
-state: not-started
+phase: implementation
+state: in-progress
 wave: 2
 depends_on:
-  - I001-F01
+- I001-F01
 context_refs:
-  - path: ../../feasibility/confirmed-constraints.md
-    kind: prior-constraints
-    required: true
+- path: ../../feasibility/confirmed-constraints.md
+  kind: prior-constraints
+  required: true
 scope_gate:
   scores:
-    - 1
-    - 2
-    - 2
-    - 0
-    - 2
-    - 2
-    - 2
-    - 2
+  - 1
+  - 2
+  - 2
+  - 0
+  - 2
+  - 2
+  - 2
+  - 2
   hard_gates: []
   verdict: split-default
-  indivisibility_reason: >-
-    接管渲染、iframe 内桥与显式开关互为前提：没有开关的接管违反安全口径，没有接管的桥
-    无处安放，没有桥的接管不产生任何引用价值。三段拆开都无法独立验收，因此作为单一闭环
+  indivisibility_reason: 接管渲染、iframe 内桥与显式开关互为前提：没有开关的接管违反安全口径，没有接管的桥 无处安放，没有桥的接管不产生任何引用价值。三段拆开都无法独立验收，因此作为单一闭环
     交付，并以默认关闭降低风险面。
+consistency_matrix:
+  business:
+    status: aligned
+    owner: core
+    source_refs:
+    - discussion/workbench.md
+    - core/implementation.md
+    - ../../feasibility/confirmed-constraints.md
+    promotion_targets:
+    - product/product-vision.md
+  architecture:
+    status: aligned
+    owner: core
+    source_refs:
+    - discussion/workbench.md
+    - core/implementation.md
+    - feasibility/summary.md
+    promotion_targets:
+    - architecture/module-boundaries.md
+  contract:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/quote-content-contract.md
+    - core/implementation.md
+    promotion_targets:
+    - implementation/frontend/sidebar-quote-contract.md
+  code:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/implementation.md
+    - discussion/workbench.md
+    promotion_targets:
+    - implementation/frontend/sidebar-quote-implementation.md
+  testing:
+    status: aligned
+    owner: core
+    source_refs:
+    - core/testing-and-acceptance.md
+    - core/quote-content-contract.md
+    promotion_targets:
+    - testing/sidebar-quote-acceptance.md
 next_action:
-  skill: hl-feature-discuss
-  instruction: "在需求讨论中确认开关入口与默认值、CSP 与相对资源策略，并等 I001-F01 就绪"
+  skill: hl-feature-orchestrator
+  instruction: 在本会话完成代码调研与获批 implementation-plan.md，随后实现 HTML 预览接管、固定评审门与分离验收
