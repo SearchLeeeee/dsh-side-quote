@@ -99,5 +99,6 @@ consistency_matrix:
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
 next_action:
-  skill: hl-initiative-merge
-  instruction: 等待 I001-F02 完成后做 Initiative 集成验收；本 Feature 的长期文档提升需 owner 明确授权
+  skill: hl-feature-discuss
+  instruction: I001-F01 已就绪；下一步对 I001-F02（HTML 预览接管）执行讨论与 profiles，全部 Leaf 就绪后再做 Initiative
+    集成验收
