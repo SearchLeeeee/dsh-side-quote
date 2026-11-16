@@ -1,0 +1,91 @@
+{
+  "gitRevision": "f5dadaa4d76ade322d55953cf038400d995fde84",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "enabledSwitch": {
+    "before": "false",
+    "changed": true
+  },
+  "disabledSwitchPath": "mouse",
+  "markdownPositiveControl": {
+    "enabled": {
+      "buttonPresent": true,
+      "disabled": true,
+      "screenshot": "a-md-enabled.png"
+    },
+    "disabled": {
+      "buttonPresent": false,
+      "disabled": null,
+      "screenshot": "a-md-disabled.png"
+    }
+  },
+  "formats": [
+    {
+      "key": "report-pdf",
+      "label": "PDF",
+      "enabled": {
+        "buttonPresent": false,
+        "screenshot": "report-pdf-enabled.png"
+      },
+      "disabled": {
+        "buttonPresent": false,
+        "screenshot": "report-pdf-disabled.png"
+      }
+    },
+    {
+      "key": "image-png",
+      "label": "PNG",
+      "enabled": {
+        "buttonPresent": false,
+        "screenshot": "image-png-enabled.png"
+      },
+      "disabled": {
+        "buttonPresent": false,
+        "screenshot": "image-png-disabled.png"
+      }
+    },
+    {
+      "key": "table-xlsx",
+      "label": "XLSX",
+      "enabled": {
+        "buttonPresent": false,
+        "screenshot": "table-xlsx-enabled.png"
+      },
+      "disabled": {
+        "buttonPresent": false,
+        "screenshot": "table-xlsx-disabled.png"
+      }
+    },
+    {
+      "key": "doc-docx",
+      "label": "DOCX",
+      "enabled": {
+        "buttonPresent": false,
+        "screenshot": "doc-docx-enabled.png"
+      },
+      "disabled": {
+        "buttonPresent": false,
+        "screenshot": "doc-docx-disabled.png"
+      }
+    },
+    {
+      "key": "page-html",
+      "label": "HTML",
+      "enabled": {
+        "buttonPresent": false,
+        "screenshot": "page-html-enabled.png"
+      },
+      "disabled": {
+        "buttonPresent": false,
+        "screenshot": "page-html-disabled.png"
+      }
+    }
+  ],
+  "consoleErrors": {
+    "enabledPhase": [],
+    "disabledPhase": []
+  },
+  "capturedAt": "2026-11-16T04:58:54.158Z"
+}

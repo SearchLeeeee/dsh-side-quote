@@ -2,14 +2,45 @@ id: I001-F01
 title: 文本预览划词引用闭环（通用核心 + 文本格式适配）
 leaf: true
 owner: core
-phase: review
-state: in-progress
+phase: ready-to-merge
+state: ready
 wave: 1
 depends_on: []
 context_refs:
 - path: ../../feasibility/confirmed-constraints.md
   kind: prior-constraints
   required: true
+- path: code-ai/implementation-plan.md
+  kind: implementation-plan
+  required: true
+- path: evidence/review-gate-record.md
+  kind: review-evidence
+  required: true
+acceptance:
+  passed: true
+  evidence:
+  - evidence/verification-record.md
+  - evidence/review-gate-record.md
+  - evidence/e2e/E-01-2-inserted.png
+  - evidence/e2e/E-04-0-positive-control.png
+  - evidence/e2e/E-05-1-sensitive.png
+  - evidence/e2e/E-09-1-cross-pane-greyed.png
+  - evidence/format-regression/format-regression-summary.json
+  achievements: 实现在独立 profile side-quote-verify（临时 DSH_HOME）与端口 34181 上通过 AC-1..AC-16；E-01..E-09
+    全部执行通过，人工逐格式回归 pdf/png/xlsx/docx/html 启用与停用 截图逐字节相同且均无引用按钮；live 实例 3081（PID 67988）全程未重启、未终止、未写入。
+  notes: .env 浏览器用例不适用（Files 页不列出 . 开头条目），由 U-10/U-11 承担；contract 端口 3181 落在 Windows
+    保留区间 3119-3218，按 core/testing-and-acceptance.md §4.1 用 34181 等价替代。
+closure:
+  canonical_docs:
+  - product/product-vision.md
+  - architecture/module-boundaries.md
+  - implementation/frontend/sidebar-quote-contract.md
+  - implementation/frontend/sidebar-quote-implementation.md
+  - testing/sidebar-quote-acceptance.md
+  validation_evidence:
+  - evidence/verification-record.md
+  - evidence/format-regression/format-regression-summary.json
+  tombstone_target: ../../registry.yaml
 scope_gate:
   scores:
   - 1
@@ -68,5 +99,5 @@ consistency_matrix:
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
 next_action:
-  skill: wiki/code-ai/review-agent.md
-  instruction: 对 df693c1 的实现与文档同步跑固定评审门，无 Blocker/High 后进入独立验收
+  skill: hl-initiative-merge
+  instruction: 等待 I001-F02 完成后做 Initiative 集成验收；本 Feature 的长期文档提升需 owner 明确授权

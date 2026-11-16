@@ -1,0 +1,9 @@
+{
+  "case": "E-04-docx",
+  "gitRevision": "f5dadaa4d76ade322d55953cf038400d995fde84",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T04:54:09.166Z"
+}

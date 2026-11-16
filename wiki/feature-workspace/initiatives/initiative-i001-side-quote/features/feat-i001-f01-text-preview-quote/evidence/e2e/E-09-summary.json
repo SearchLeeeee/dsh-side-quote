@@ -1,0 +1,69 @@
+{
+  "gitRevision": "f5dadaa4d76ade322d55953cf038400d995fde84",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "bothVisible": {
+    "notesA": 1,
+    "notesB": 1
+  },
+  "crossSelection": {
+    "ok": true,
+    "aBeforeB": false,
+    "collapsed": false,
+    "selectionRangeCount": 1,
+    "rangeTextLength": 227,
+    "rangeTextHead": "different document body used for cross-file independence.文件a.mdreport.pdfimage.p",
+    "selectionTextLength": 176,
+    "anchorRect": {
+      "x": 1128,
+      "y": 132,
+      "width": 300
+    },
+    "focusRect": {
+      "x": 805,
+      "y": 132,
+      "width": 299
+    },
+    "startContainerSameAsEnd": false,
+    "rangeRect": {
+      "x": 468,
+      "width": 1199
+    }
+  },
+  "quoteButtonsAfterCrossSelection": [
+    {
+      "disabled": true,
+      "x": 1326,
+      "y": 37
+    },
+    {
+      "disabled": true,
+      "x": 1002,
+      "y": 37
+    }
+  ],
+  "paneAButton": {
+    "disabled": true,
+    "x": 1002,
+    "y": 37
+  },
+  "forcedClickPath": "none",
+  "composerChangedAfterClick": false,
+  "samePaneSelectionText": "quick brown fox",
+  "quoteButtonsAfterSamePaneSelection": [
+    {
+      "disabled": true,
+      "x": 1326,
+      "y": 37
+    },
+    {
+      "disabled": false,
+      "x": 1002,
+      "y": 37
+    }
+  ],
+  "consoleErrors": [],
+  "capturedAt": "2026-11-16T05:09:16.906Z"
+}
