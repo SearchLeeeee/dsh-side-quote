@@ -1,0 +1,28 @@
+[side-quote e2e] instance=http://127.0.0.1:34181/ port=34181 profile=side-quote-verify driver=http://127.0.0.1:39261 evidence=C:\Users\search\AppData\Local\Temp\side-quote-i001-integration\e2e-out2
+✔ E-04 其他格式零影响：白名单格式先出现按钮，其余格式逐一无按钮，HTML 只有接管开关 (20753.5902ms)
+[side-quote e2e] instance=http://127.0.0.1:34181/ port=34181 profile=side-quote-verify driver=http://127.0.0.1:39261 evidence=C:\Users\search\AppData\Local\Temp\side-quote-i001-integration\e2e-out2
+✔ E-10 关闭态正文等价：接管关闭与插件停用两个阶段逐字节对比 (25339.4439ms)
+✔ E-11 开启自检：一条 info → 正文接管 → 自带消失 → 按钮置灰 (7882.7657ms)
+✔ E-12 真实拖选引用闭环：拖选 → 按钮可用 → 鼠标点击 → 原文块入框 (7856.3429ms)
+✔ E-13 同文件再引：第二次插入指针块，不含原文与来源行 (8534.6811ms)
+✔ E-14 无选区：接管开启且页面就绪时引用按钮存在但置灰 (6932.4325ms)
+✔ E-15 CSP 页面仍可引用：script-src none 不影响桥与插入 (7951.9131ms)
+✔ E-16 闸门关闭：点击开关恰一条 error、正文不接管、开关禁用并说明原因 (11360.1192ms)
+✔ E-17 开启后关闭：正文回到自带、按钮消失、开关为关、后续划词无反应 (8917.0961ms)
+✔ E-18 开启状态下停用插件：iframe 与控件消失、blob 不再被引用、控制台无 error (23548.1471ms)
+[side-quote e2e] instance=http://127.0.0.1:34181/ port=34181 profile=side-quote-verify driver=http://127.0.0.1:39261 evidence=C:\Users\search\AppData\Local\Temp\side-quote-i001-integration\e2e-out2
+✔ E-01 首次引用闭环：划词 → 按钮可用 → 真实鼠标点击 → 引用块入框 (3686.5305ms)
+✔ E-02 同文件再引：第二次插入指针块，不含原文 (4072.1593ms)
+✔ E-03 跨文件独立：另一个文件仍是原文块 (3664.5604ms)
+✔ E-05 敏感文件：原样插入且恰好一条 info 警示、没有 error 通知 (3609.0687ms)
+✔ E-06 无选区：按钮存在但置灰 (4048.313ms)
+✔ E-07 切 tab 后旧选区不再可用 (6233.0906ms)
+✔ E-08 停用清理：按钮消失、无控制台报错 (15912.2173ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 229864.7295

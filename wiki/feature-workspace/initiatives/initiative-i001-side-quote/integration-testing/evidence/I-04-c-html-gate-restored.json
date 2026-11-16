@@ -1,0 +1,14 @@
+{
+  "case": "I-04-c-html-gate-restored",
+  "gitRevision": "ff44221d013b5141afed2d484f9ceccc8cd22c69",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T11:21:18.238Z",
+  "takeover": "on",
+  "selectionDrive": null,
+  "iframeSandbox": null,
+  "developerTools": true,
+  "clip": null
+}

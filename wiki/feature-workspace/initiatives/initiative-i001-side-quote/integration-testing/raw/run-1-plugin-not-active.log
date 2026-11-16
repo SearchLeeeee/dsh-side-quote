@@ -1,0 +1,21 @@
+[side-quote e2e] instance=http://127.0.0.1:34181/ port=34181 profile=side-quote-verify driver=http://127.0.0.1:39261 evidence=D:\dsh-side-quote\wiki\feature-workspace\initiatives\initiative-i001-side-quote\integration-testing\evidence
+[integration] baseline: gate=true takeoverKey=null
+[integration] --- I-01 ---
+[integration] I-01: FAIL — the text preview must show the quote button
+[integration] --- I-02 ---
+[integration] I-02: FAIL — the mdOn header snapshot must exist
+[integration] --- I-03 ---
+[integration] I-03: FAIL — the persisted takeover key must still read 'on': null
+[integration] --- I-04 ---
+[integration] I-04: FAIL — the .md quote button must still render with the gate closed
+[integration] --- I-05 ---
+[integration] I-05: FAIL — timed out after 30000ms waiting for the directory row notes
+[integration] --- I-06 ---
+[integration] I-06: FAIL — no selection must leave the text button disabled
+[integration] --- I-07 ---
+[integration] I-07: FAIL — exactly one takeover frame is expected: {"takeover":[],"builtin":[],"body":0}
+[integration] --- I-08 ---
+[integration] I-08: FAIL — both HTML controls must exist before disabling the plugin
+[integration] summary written to D:\dsh-side-quote\wiki\feature-workspace\initiatives\initiative-i001-side-quote\integration-testing\evidence\integration-summary.json
+[integration] rows: I-01=FAIL I-02=FAIL I-03=FAIL I-04=FAIL I-05=FAIL I-06=FAIL I-07=FAIL I-08=FAIL
+[integration] failures: I-01, I-02, I-03, I-04, I-05, I-06, I-07, I-08

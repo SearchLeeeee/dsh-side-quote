@@ -1,0 +1,549 @@
+{
+  "run": "I001-initiative-integration",
+  "initiative": "I001",
+  "features": [
+    "I001-F01",
+    "I001-F02"
+  ],
+  "gitRevision": "ff44221d013b5141afed2d484f9ceccc8cd22c69",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "startedAt": "2026-11-16T11:18:09.678Z",
+  "baseline": {
+    "gateObserved": false,
+    "gateSet": {
+      "changed": true,
+      "enabled": true
+    },
+    "pluginEnabled": "unchanged",
+    "takeoverKey": null,
+    "pluginActive": true,
+    "establishedAt": "2026-11-16T11:18:23.843Z"
+  },
+  "rows": [
+    {
+      "id": "I-01",
+      "status": "PASS",
+      "steps": [
+        {
+          "step": "1 text quote",
+          "drive": "synthetic-range (DOM Range) + real click",
+          "activation": "mouse"
+        },
+        {
+          "step": "2 html preview, takeover off",
+          "builtinSandbox": "allow-scripts"
+        },
+        {
+          "step": "3 takeover engaged",
+          "toggleActivation": "mouse",
+          "notices": [
+            {
+              "role": "status",
+              "text": "已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。"
+            }
+          ]
+        },
+        {
+          "step": "4 html original quote",
+          "drive": "mouse",
+          "activation": "mouse",
+          "dragged": "The quick brown fox jumps over the lazy dog"
+        },
+        {
+          "step": "5 html second quote (pointer)",
+          "pointerMeta": "samples/page.html 已引用过"
+        },
+        {
+          "step": "6 text second quote (pointer, same record space)",
+          "pointerMeta": "notes/a.md 已引用过"
+        }
+      ],
+      "noticesAtEnd": 0,
+      "sameCardStream": 20
+    },
+    {
+      "id": "I-02",
+      "status": "PASS",
+      "combinations": {
+        "mdOn": true,
+        "mdOff": true,
+        "htmlOff": true,
+        "htmlOn": true
+      }
+    },
+    {
+      "id": "I-03",
+      "status": "PASS",
+      "observed": [
+        {
+          "file": "notes/b.md",
+          "textButton": true,
+          "quoted": true
+        },
+        {
+          "file": "report.pdf",
+          "textButton": false,
+          "toggle": false,
+          "htmlButton": false
+        },
+        {
+          "file": "image.png",
+          "textButton": false,
+          "toggle": false,
+          "htmlButton": false
+        }
+      ]
+    },
+    {
+      "id": "I-04",
+      "status": "PASS",
+      "gateClosedMdQuote": true,
+      "gateClosedHtml": true,
+      "gateRestored": 1
+    },
+    {
+      "id": "I-05",
+      "status": "FAIL",
+      "error": "the long text selection must exceed the character bound: {\"length\":0}"
+    },
+    {
+      "id": "I-06",
+      "status": "PASS",
+      "mdNoSelection": {
+        "present": true,
+        "disabled": true
+      },
+      "htmlNoSelection": true,
+      "staleSelection": {
+        "excerptLength": 15,
+        "buttonDisabled": true,
+        "cardsBefore": 22,
+        "cardsAfter": 22
+      }
+    },
+    {
+      "id": "I-07",
+      "status": "PASS",
+      "sandbox": "allow-scripts",
+      "isolation": {
+        "parentReachable": false,
+        "hostGlobals": [],
+        "canPostToParent": true
+      },
+      "bridge": {
+        "total": 39,
+        "ready": 5,
+        "selections": 34
+      }
+    },
+    {
+      "id": "I-08",
+      "status": "PASS",
+      "boundary": {
+        "takeover": [],
+        "builtin": [],
+        "body": 0
+      },
+      "restored": {
+        "takeover": 1,
+        "textButton": true
+      }
+    }
+  ],
+  "controls": [
+    {
+      "label": "md/takeover-off",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/takeover-off",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": false,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 1,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": "allow-scripts"
+    },
+    {
+      "label": "html/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "md/takeover-on",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "b.md/takeover-on",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "report.pdf/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "image.png/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "md/gate-false",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/gate-false",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": true,
+      "toggleHint": "需要先开启「开发者工具」（页面脚本）才能接管预览。 | 接管 HTML 预览 | 需要先开启「开发者工具」（页面脚本）才能接管预览。",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 1,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": ""
+    },
+    {
+      "label": "html/gate-restored",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/no-selection",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/before-disable",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/after-reenable",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/reenabled",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    }
+  ],
+  "cards": [
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page-csp.html",
+      "meta": "samples/page-csp.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page-csp.html samples/page-csp.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page-csp.html",
+      "meta": "samples/page-csp.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page-csp.html samples/page-csp.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "b.md",
+      "meta": "notes/b.md 1 行",
+      "body": "different document body",
+      "text": "b.md notes/b.md 1 行 different document body"
+    },
+    {
+      "label": "secret.md",
+      "meta": "notes/secret.md 1 行",
+      "body": "DEMO_SECRET=placeholder",
+      "text": "secret.md notes/secret.md 1 行 DEMO_SECRET=placeholder"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy dog",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy dog"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "b.md",
+      "meta": "notes/b.md 1 行",
+      "body": "beta token",
+      "text": "b.md notes/b.md 1 行 beta token"
+    },
+    {
+      "label": "secret.md",
+      "meta": "notes/secret.md 1 行",
+      "body": "DEMO_SECRET=placeholder",
+      "text": "secret.md notes/secret.md 1 行 DEMO_SECRET=placeholder"
+    }
+  ],
+  "bridge": {
+    "total": 39,
+    "ready": 5,
+    "selections": 34
+  },
+  "security": {
+    "iframeSandbox": "allow-scripts",
+    "isolation": {
+      "parentReachable": false,
+      "hostGlobals": [],
+      "canPostToParent": true
+    },
+    "sandbox": "allow-scripts"
+  },
+  "selectionDrive": {},
+  "consoleErrors": [],
+  "pageTargetId": "18CC74D3E2FD4AB80CCDF7C398685387",
+  "teardown": {
+    "disableActivation": "mouse",
+    "bodyAfterDisable": {
+      "takeover": [],
+      "builtin": [],
+      "body": 0
+    },
+    "builtinFrameAfterDisable": 0,
+    "consoleErrors": []
+  },
+  "endedAt": "2026-11-16T11:19:18.722Z",
+  "failures": [
+    "I-05"
+  ],
+  "notes": [],
+  "pageUrl": "http://127.0.0.1:34181/"
+}

@@ -1,0 +1,609 @@
+{
+  "run": "I001-initiative-integration",
+  "initiative": "I001",
+  "features": [
+    "I001-F01",
+    "I001-F02"
+  ],
+  "gitRevision": "ff44221d013b5141afed2d484f9ceccc8cd22c69",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "startedAt": "2026-11-16T11:20:43.855Z",
+  "baseline": {
+    "gateObserved": true,
+    "gateSet": {
+      "changed": false,
+      "enabled": true
+    },
+    "pluginEnabled": "unchanged",
+    "takeoverKey": null,
+    "pluginActive": true,
+    "establishedAt": "2026-11-16T11:20:58.328Z"
+  },
+  "rows": [
+    {
+      "id": "I-01",
+      "status": "PASS",
+      "steps": [
+        {
+          "step": "1 text quote",
+          "drive": "synthetic-range (DOM Range) + real click",
+          "activation": "mouse"
+        },
+        {
+          "step": "2 html preview, takeover off",
+          "builtinSandbox": "allow-scripts"
+        },
+        {
+          "step": "3 takeover engaged",
+          "toggleActivation": "mouse",
+          "notices": [
+            {
+              "role": "status",
+              "text": "已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。"
+            }
+          ]
+        },
+        {
+          "step": "4 html original quote",
+          "drive": "mouse",
+          "activation": "mouse",
+          "dragged": "The quick brown fox jumps over the lazy dog"
+        },
+        {
+          "step": "5 html second quote (pointer)",
+          "pointerMeta": "samples/page.html 已引用过"
+        },
+        {
+          "step": "6 text second quote (pointer, same record space)",
+          "pointerMeta": "notes/a.md 已引用过"
+        }
+      ],
+      "noticesAtEnd": 0,
+      "sameCardStream": 26
+    },
+    {
+      "id": "I-02",
+      "status": "PASS",
+      "combinations": {
+        "mdOn": true,
+        "mdOff": true,
+        "htmlOff": true,
+        "htmlOn": true
+      }
+    },
+    {
+      "id": "I-03",
+      "status": "PASS",
+      "observed": [
+        {
+          "file": "notes/b.md",
+          "textButton": true,
+          "quoted": true
+        },
+        {
+          "file": "report.pdf",
+          "textButton": false,
+          "toggle": false,
+          "htmlButton": false
+        },
+        {
+          "file": "image.png",
+          "textButton": false,
+          "toggle": false,
+          "htmlButton": false
+        }
+      ]
+    },
+    {
+      "id": "I-04",
+      "status": "PASS",
+      "gateClosedMdQuote": true,
+      "gateClosedHtml": true,
+      "gateRestored": 1
+    },
+    {
+      "id": "I-05",
+      "status": "PASS",
+      "budget": {
+        "textTruncatedQuote": [],
+        "htmlTruncatedQuote": [],
+        "cspQuote": []
+      },
+      "truncation": {
+        "text": "notes/long.txt 129 行（已截断）",
+        "html": "samples/long.html 162 行（已截断）"
+      }
+    },
+    {
+      "id": "I-06",
+      "status": "PASS",
+      "mdNoSelection": {
+        "present": true,
+        "disabled": true
+      },
+      "htmlNoSelection": true,
+      "staleSelection": {
+        "excerptLength": 15,
+        "buttonDisabled": true,
+        "cardsBefore": 31,
+        "cardsAfter": 31
+      }
+    },
+    {
+      "id": "I-07",
+      "status": "PASS",
+      "sandbox": "allow-scripts",
+      "isolation": {
+        "parentReachable": false,
+        "hostGlobals": [],
+        "canPostToParent": true
+      },
+      "bridge": {
+        "total": 62,
+        "ready": 7,
+        "selections": 55
+      }
+    },
+    {
+      "id": "I-08",
+      "status": "PASS",
+      "boundary": {
+        "takeover": [],
+        "builtin": [],
+        "body": 0
+      },
+      "restored": {
+        "takeover": 1,
+        "textButton": true
+      }
+    }
+  ],
+  "controls": [
+    {
+      "label": "md/takeover-off",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/takeover-off",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": false,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 1,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": "allow-scripts"
+    },
+    {
+      "label": "html/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "md/takeover-on",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "b.md/takeover-on",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "report.pdf/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "image.png/takeover-on",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "md/gate-false",
+      "textButton": true,
+      "textButtonDisabled": true,
+      "toggle": false,
+      "togglePressed": null,
+      "toggleDisabled": null,
+      "toggleHint": "",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 0,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/gate-false",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": true,
+      "toggleHint": "需要先开启「开发者工具」（页面脚本）才能接管预览。 | 接管 HTML 预览 | 需要先开启「开发者工具」（页面脚本）才能接管预览。",
+      "htmlButton": false,
+      "htmlButtonDisabled": null,
+      "takeoverFrames": 0,
+      "builtinFrames": 1,
+      "takeoverBody": 0,
+      "sandbox": null,
+      "builtinSandbox": ""
+    },
+    {
+      "label": "html/gate-restored",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/no-selection",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/before-disable",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/after-reenable",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    },
+    {
+      "label": "html/reenabled",
+      "textButton": false,
+      "textButtonDisabled": null,
+      "toggle": true,
+      "togglePressed": true,
+      "toggleDisabled": false,
+      "toggleHint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "htmlButton": true,
+      "htmlButtonDisabled": true,
+      "takeoverFrames": 1,
+      "builtinFrames": 0,
+      "takeoverBody": 1,
+      "sandbox": "allow-scripts",
+      "builtinSandbox": null
+    }
+  ],
+  "cards": [
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page-csp.html",
+      "meta": "samples/page-csp.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page-csp.html samples/page-csp.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "page-csp.html",
+      "meta": "samples/page-csp.html 1 行",
+      "body": "The quick brown fox jumps over the lazy",
+      "text": "page-csp.html samples/page-csp.html 1 行 The quick brown fox jumps over the lazy"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "b.md",
+      "meta": "notes/b.md 1 行",
+      "body": "different document body",
+      "text": "b.md notes/b.md 1 行 different document body"
+    },
+    {
+      "label": "secret.md",
+      "meta": "notes/secret.md 1 行",
+      "body": "DEMO_SECRET=placeholder",
+      "text": "secret.md notes/secret.md 1 行 DEMO_SECRET=placeholder"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy dog",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy dog"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "b.md",
+      "meta": "notes/b.md 1 行",
+      "body": "beta token",
+      "text": "b.md notes/b.md 1 行 beta token"
+    },
+    {
+      "label": "secret.md",
+      "meta": "notes/secret.md 1 行",
+      "body": "DEMO_SECRET=placeholder",
+      "text": "secret.md notes/secret.md 1 行 DEMO_SECRET=placeholder"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 1 行",
+      "body": "quick brown fox",
+      "text": "a.md notes/a.md 1 行 quick brown fox"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 1 行",
+      "body": "The quick brown fox jumps over the lazy dog",
+      "text": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy dog"
+    },
+    {
+      "label": "page.html",
+      "meta": "samples/page.html 已引用过",
+      "body": "已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "page.html samples/page.html 已引用过 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "a.md",
+      "meta": "notes/a.md 已引用过",
+      "body": "已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+      "text": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。"
+    },
+    {
+      "label": "b.md",
+      "meta": "notes/b.md 1 行",
+      "body": "beta token",
+      "text": "b.md notes/b.md 1 行 beta token"
+    },
+    {
+      "label": "secret.md",
+      "meta": "notes/secret.md 1 行",
+      "body": "DEMO_SECRET=placeholder",
+      "text": "secret.md notes/secret.md 1 行 DEMO_SECRET=placeholder"
+    },
+    {
+      "label": "long.txt",
+      "meta": "notes/long.txt 129 行（已截断）",
+      "body": "line 001 synthetic truncation fixture padding text abcdefghij line 002 synthetic truncation fixture padding text abcdefghij line 003 synthetic truncation fixture padding text abcdefghij line 004 synthetic truncation fixture padding text abcdefghij line 005 synthetic truncation fixture padding text abcdefghij line 006 synthetic truncation fixture padding text abcdefghij line 007 synthetic truncation fixture padding text abcdefghij line 008 synthetic truncation fixture padding text abcdefghij line 009 synthetic truncation fixture padding text abcdefghij line 010 synthetic truncation fixture padding text abcdefghij line 011 synthetic truncation fixture padding text abcdefghij line 012 synthetic truncation fixture padding text abcdefghij line 013 synthetic truncation fixture padding text abcdefghij line 014 synthetic truncation fixture padding text abcdefghij line 015 synthetic truncation fixture padding text abcdefghij line 016 synthetic truncation fixture padding text abcdefghij line 017 synthetic truncation fixture padding text abcdefghij line 018 synthetic truncation fixture padding text abcdefghij line 019 synthetic truncation fixture padding text abcdefghij line 020 synthetic truncation fixture padding text abcdefghij line 021 synthetic truncation fixture padding text abcdefghij line 022 synthetic truncation fixture padding text abcdefghij line 023 synthetic truncation fixture padding text abcdefghij line 024 synthetic truncation fixture padding text abcdefghij line 025 synthetic truncation fixture padding text abcdefghij line 026 synthetic truncation fixture padding text abcdefghij line 027 synthetic truncation fixture padding text abcdefghij line 028 synthetic truncation fixture padding text abcdefghij line 029 synthetic truncation fixture padding text abcdefghij line 030 synthetic truncation fixture padding text abcdefghij line 031 synthetic truncation fixture padding text abcdefghij line 032 synthetic truncation fixture padding text abcdefghij line 033 synthetic truncation fixture padding text abcdefghij line 034 synthetic truncation fixture padding text abcdefghij line 035 synthetic truncation fixture padding text abcdefghij line 036 synthetic truncation fixture padding text abcdefghij line 037 synthetic truncation fixture padding text abcdefghij line 038 synthetic truncation fixture padding text abcdefghij line 039 synthetic truncation fixture padding text abcdefghij line 040 synthetic truncation fixture padding text abcdefghij line 041 synthetic truncation fixture padding text abcdefghij line 042 synthetic truncation fixture padding text abcdefghij line 043 synthetic truncation fixture padding text abcdefghij line 044 synthetic truncation fixture padding text abcdefghij line 045 synthetic truncation fixture padding text abcdefghij line 046 synthetic truncation fixture padding text abcdefghij line 047 synthetic truncation fixture padding text abcdefghij line 048 synthetic truncation fixture padding text abcdefghij line 049 synthetic truncation fixture padding text abcdefghij line 050 synthetic truncation fixture padding text abcdefghij line 051 synthetic truncation fixture padding text abcdefghij line 052 synthetic truncation fixture padding text abcdefghij line 053 synthetic truncation fixture padding text abcdefghij line 054 synthetic truncation fixture padding text abcdefghij line 055 synthetic truncation fixture padding text abcdefghij line 056 synthetic truncation fixture padding text abcdefghij line 057 synthetic truncation fixture padding text abcdefghij line 058 synthetic truncation fixture padding text abcdefghij line 059 synthetic truncation fixture padding text abcdefghij line 060 synthetic truncation fixture padding text abcdefghij line 061 synthetic truncation fixture padding text abcdefghij line 062 synthetic truncation fixture padding text abcdefghij line 063 synthetic truncation fixture padding text abcdefghij line 064 synthetic truncation fixture padding text abcdefghij line 065 synthetic truncation fixture padding text abcdefghij line 066 synthetic truncation fixture padding text abcdefghij line 067 synthetic truncation fixture padding text abcdefghij line 068 synthetic truncation fixture padding text abcdefghij line 069 synthetic truncation fixture padding text abcdefghij line 070 synthetic truncation fixture padding text abcdefghij line 071 synthetic truncation fixture padding text abcdefghij line 072 synthetic truncation fixture padding text abcdefghij line 073 synthetic truncation fixture padding text abcdefghij line 074 synthetic truncation fixture padding text abcdefghij line 075 synthetic truncation fixture padding text abcdefghij line 076 synthetic truncation fixture padding text abcdefghij line 077 synthetic truncation fixture padding text abcdefghij line 078 synthetic truncation fixture padding text abcdefghij line 079 synthetic truncation fixture padding text abcdefghij line 080 synthetic truncation fixture padding text abcdefghij line 081 synthetic truncation fixture padding text abcdefghij line 082 synthetic truncation fixture padding text abcdefghij line 083 synthetic truncation fixture padding text abcdefghij line 084 synthetic truncation fixture padding text abcdefghij line 085 synthetic truncation fixture padding text abcdefghij line 086 synthetic truncation fixture padding text abcdefghij line 087 synthetic truncation fixture padding text abcdefghij line 088 synthetic truncation fixture padding text abcdefghij line 089 synthetic truncation fixture padding text abcdefghij line 090 synthetic truncation fixture padding text abcdefghij line 091 synthetic truncation fixture padding text abcdefghij line 092 synthetic truncation fixture padding text abcdefghij line 093 synthetic truncation fixture padding text abcdefghij line 094 synthetic truncation fixture padding text abcdefghij line 095 synthetic truncation fixture padding text abcdefghij line 096 synthetic truncation fixture padding text abcdefghij line 097 synthetic truncation fixture padding text abcdefghij line 098 synthetic truncation fixture padding text abcdefghij line 099 synthetic truncation fixture padding text abcdefghij line 100 synthetic truncation fixture padding text abcdefghij line 101 synthetic truncation fixture padding text abcdefghij line 102 synthetic truncation fixture padding text abcdefghij line 103 synthetic truncation fixture padding text abcdefghij line 104 synthetic truncation fixture padding text abcdefghij line 105 synthetic truncation fixture padding text abcdefghij line 106 synthetic truncation fixture padding text abcdefghij line 107 synthetic truncation fixture padding text abcdefghij line 108 synthetic truncation fixture padding text abcdefghij line 109 synthetic truncation fixture padding text abcdefghij line 110 synthetic truncation fixture padding text abcdefghij line 111 synthetic truncation fixture padding text abcdefghij line 112 synthetic truncation fixture padding text abcdefghij line 113 synthetic truncation fixture padding text abcdefghij line 114 synthetic truncation fixture padding text abcdefghij line 115 synthetic truncation fixture padding text abcdefghij line 116 synthetic truncation fixture padding text abcdefghij line 117 synthetic truncation fixture padding text abcdefghij line 118 synthetic truncation fixture padding text abcdefghij line 119 synthetic truncation fixture padding text abcdefghij line 120 synthetic truncation fixture padding text abcdefghij line 121 synthetic truncation fixture padding text abcdefghij line 122 synthetic truncation fixture padding text abcdefghij line 123 synthetic truncation fixture padding text abcdefghij line 124 synthetic truncation fixture padding text abcdefghij line 125 synthetic truncation fixture padding text abcdefghij line 126 synthetic truncation fixture padding text abcdefghij line 127 synthetic truncation fixture padding text abcdefghij line 128 synthetic truncation fixture padding text abcdefghij line 129 synthetic truncation fixture padding text abcdefghij …（摘录已截断，仅保留前 200 行 / 8000 字符）",
+      "text": "long.txt notes/long.txt 129 行（已截断） line 001 synthetic truncation fixture padding text abcdefghij line 002 synthetic truncation fixture padding text abcdefghij line 003 synthetic truncation fixture padding text abcdefghij line 004 synthetic truncation fixture padding text abcdefghij line 005 synthetic truncation fixture padding text abcdefghij line 006 synthetic truncation fixture padding text abcdefghij line 007 synthetic truncation fixture padding text abcdefghij line 008 synthetic truncation fixture padding text abcdefghij line 009 synthetic truncation fixture padding text abcdefghij line 010 synthetic truncation fixture padding text abcdefghij line 011 synthetic truncation fixture padding text abcdefghij line 012 synthetic truncation fixture padding text abcdefghij line 013 synthetic truncation fixture padding text abcdefghij line 014 synthetic truncation fixture padding text abcdefghij line 015 synthetic truncation fixture padding text abcdefghij line 016 synthetic truncation fixture padding text abcdefghij line 017 synthetic truncation fixture padding text abcdefghij line 018 synthetic truncation fixture padding text abcdefghij line 019 synthetic truncation fixture padding text abcdefghij line 020 synthetic truncation fixture padding text abcdefghij line 021 synthetic truncation fixture padding text abcdefghij line 022 synthetic truncation fixture padding text abcdefghij line 023 synthetic truncation fixture padding text abcdefghij line 024 synthetic truncation fixture padding text abcdefghij line 025 synthetic truncation fixture padding text abcdefghij line 026 synthetic truncation fixture padding text abcdefghij line 027 synthetic truncation fixture padding text abcdefghij line 028 synthetic truncation fixture padding text abcdefghij line 029 synthetic truncation fixture padding text abcdefghij line 030 synthetic truncation fixture padding text abcdefghij line 031 synthetic truncation fixture padding text abcdefghij line 032 synthetic truncation fixture padding text abcdefghij line 033 synthetic truncation fixture padding text abcdefghij line 034 synthetic truncation fixture padding text abcdefghij line 035 synthetic truncation fixture padding text abcdefghij line 036 synthetic truncation fixture padding text abcdefghij line 037 synthetic truncation fixture padding text abcdefghij line 038 synthetic truncation fixture padding text abcdefghij line 039 synthetic truncation fixture padding text abcdefghij line 040 synthetic truncation fixture padding text abcdefghij line 041 synthetic truncation fixture padding text abcdefghij line 042 synthetic truncation fixture padding text abcdefghij line 043 synthetic truncation fixture padding text abcdefghij line 044 synthetic truncation fixture padding text abcdefghij line 045 synthetic truncation fixture padding text abcdefghij line 046 synthetic truncation fixture padding text abcdefghij line 047 synthetic truncation fixture padding text abcdefghij line 048 synthetic truncation fixture padding text abcdefghij line 049 synthetic truncation fixture padding text abcdefghij line 050 synthetic truncation fixture padding text abcdefghij line 051 synthetic truncation fixture padding text abcdefghij line 052 synthetic truncation fixture padding text abcdefghij line 053 synthetic truncation fixture padding text abcdefghij line 054 synthetic truncation fixture padding text abcdefghij line 055 synthetic truncation fixture padding text abcdefghij line 056 synthetic truncation fixture padding text abcdefghij line 057 synthetic truncation fixture padding text abcdefghij line 058 synthetic truncation fixture padding text abcdefghij line 059 synthetic truncation fixture padding text abcdefghij line 060 synthetic truncation fixture padding text abcdefghij line 061 synthetic truncation fixture padding text abcdefghij line 062 synthetic truncation fixture padding text abcdefghij line 063 synthetic truncation fixture padding text abcdefghij line 064 synthetic truncation fixture padding text abcdefghij line 065 synthetic truncation fixture padding text abcdefghij line 066 synthetic truncation fixture padding text abcdefghij line 067 synthetic truncation fixture padding text abcdefghij line 068 synthetic truncation fixture padding text abcdefghij line 069 synthetic truncation fixture padding text abcdefghij line 070 synthetic truncation fixture padding text abcdefghij line 071 synthetic truncation fixture padding text abcdefghij line 072 synthetic truncation fixture padding text abcdefghij line 073 synthetic truncation fixture padding text abcdefghij line 074 synthetic truncation fixture padding text abcdefghij line 075 synthetic truncation fixture padding text abcdefghij line 076 synthetic truncation fixture padding text abcdefghij line 077 synthetic truncation fixture padding text abcdefghij line 078 synthetic truncation fixture padding text abcdefghij line 079 synthetic truncation fixture padding text abcdefghij line 080 synthetic truncation fixture padding text abcdefghij line 081 synthetic truncation fixture padding text abcdefghij line 082 synthetic truncation fixture padding text abcdefghij line 083 synthetic truncation fixture padding text abcdefghij line 084 synthetic truncation fixture padding text abcdefghij line 085 synthetic truncation fixture padding text abcdefghij line 086 synthetic truncation fixture padding text abcdefghij line 087 synthetic truncation fixture padding text abcdefghij line 088 synthetic truncation fixture padding text abcdefghij line 089 synthetic truncation fixture padding text abcdefghij line 090 synthetic truncation fixture padding text abcdefghij line 091 synthetic truncation fixture padding text abcdefghij line 092 synthetic truncation fixture padding text abcdefghij line 093 synthetic truncation fixture padding text abcdefghij line 094 synthetic truncation fixture padding text abcdefghij line 095 synthetic truncation fixture padding text abcdefghij line 096 synthetic truncation fixture padding text abcdefghij line 097 synthetic truncation fixture padding text abcdefghij line 098 synthetic truncation fixture padding text abcdefghij line 099 synthetic truncation fixture padding text abcdefghij line 100 synthetic truncation fixture padding text abcdefghij line 101 synthetic truncation fixture padding text abcdefghij line 102 synthetic truncation fixture padding text abcdefghij line 103 synthetic truncation fixture padding text abcdefghij line 104 synthetic truncation fixture padding text abcdefghij line 105 synthetic truncation fixture padding text abcdefghij line 106 synthetic truncation fixture padding text abcdefghij line 107 synthetic truncation fixture padding text abcdefghij line 108 synthetic truncation fixture padding text abcdefghij line 109 synthetic truncation fixture padding text abcdefghij line 110 synthetic truncation fixture padding text abcdefghij line 111 synthetic truncation fixture padding text abcdefghij line 112 synthetic truncation fixture padding text abcdefghij line 113 synthetic truncation fixture padding text abcdefghij line 114 synthetic truncation fixture padding text abcdefghij line 115 synthetic truncation fixture padding text abcdefghij line 116 synthetic truncation fixture padding text abcdefghij line 117 synthetic truncation fixture padding text abcdefghij line 118 synthetic truncation fixture padding text abcdefghij line 119 synthetic truncation fixture padding text abcdefghij line 120 synthetic truncation fixture padding text abcdefghij line 121 synthetic truncation fixture padding text abcdefghij line 122 synthetic truncation fixture padding text abcdefghij line 123 synthetic truncation fixture padding text abcdefghij line 124 synthetic truncation fixture padding text abcdefghij line 125 synthetic truncation fixture padding text abcdefghij line 126 synthetic truncation fixture padding text abcdefghij line 127 synthetic truncation fixture padding text abcdefghij line 128 synthetic truncation fixture padding text abcdefghij line 129 synthetic truncation fixture padding text abcdefghij …（摘录已截断，仅保留前 200 行 / 8000 字符）"
+    },
+    {
+      "label": "long.html",
+      "meta": "samples/long.html 162 行（已截断）",
+      "body": "paragraph 1 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 2 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 3 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 4 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 5 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 6 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 7 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 8 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 9 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 10 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 11 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 12 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 13 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 14 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 15 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 16 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 17 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 18 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 19 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 20 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 21 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 22 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 23 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 24 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 25 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 26 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 27 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 28 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 29 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 30 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 31 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 32 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 33 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 34 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 35 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 36 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 37 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 38 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 39 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 40 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 41 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 42 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 43 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 44 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 45 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 46 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 47 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 48 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 49 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 50 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 51 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 52 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 53 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 54 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 55 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 56 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 57 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 58 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 59 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 60 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 61 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 62 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 63 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 64 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 65 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 66 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 67 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 68 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 69 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 70 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 71 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 72 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 73 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 74 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 75 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 76 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 77 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 78 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 79 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 80 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 81 HTML paragraph synthetic fixture sentence for the shared truncation contract check. …（摘录已截断，仅保留前 200 行 / 8000 字符）",
+      "text": "long.html samples/long.html 162 行（已截断） paragraph 1 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 2 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 3 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 4 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 5 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 6 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 7 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 8 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 9 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 10 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 11 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 12 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 13 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 14 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 15 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 16 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 17 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 18 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 19 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 20 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 21 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 22 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 23 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 24 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 25 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 26 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 27 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 28 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 29 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 30 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 31 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 32 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 33 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 34 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 35 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 36 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 37 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 38 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 39 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 40 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 41 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 42 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 43 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 44 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 45 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 46 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 47 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 48 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 49 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 50 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 51 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 52 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 53 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 54 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 55 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 56 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 57 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 58 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 59 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 60 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 61 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 62 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 63 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 64 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 65 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 66 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 67 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 68 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 69 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 70 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 71 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 72 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 73 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 74 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 75 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 76 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 77 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 78 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 79 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 80 HTML paragraph synthetic fixture sentence for the shared truncation contract check. paragraph 81 HTML paragraph synthetic fixture sentence for the shared truncation contract check. …（摘录已截断，仅保留前 200 行 / 8000 字符）"
+    },
+    {
+      "label": "page-csp.html",
+      "meta": "samples/page-csp.html 1 行",
+      "body": "The quick brown fox jumps over the lazy dog",
+      "text": "page-csp.html samples/page-csp.html 1 行 The quick brown fox jumps over the lazy dog"
+    }
+  ],
+  "bridge": {
+    "total": 62,
+    "ready": 7,
+    "selections": 55
+  },
+  "security": {
+    "iframeSandbox": "allow-scripts",
+    "isolation": {
+      "parentReachable": false,
+      "hostGlobals": [],
+      "canPostToParent": true
+    },
+    "sandbox": "allow-scripts"
+  },
+  "selectionDrive": {},
+  "consoleErrors": [],
+  "pageTargetId": "4EB51AB2B804EEEAB82ACC54FFBCD16F",
+  "teardown": {
+    "disableActivation": "mouse",
+    "bodyAfterDisable": {
+      "takeover": [],
+      "builtin": [],
+      "body": 0
+    },
+    "builtinFrameAfterDisable": 0,
+    "consoleErrors": []
+  },
+  "endedAt": "2026-11-16T11:22:00.218Z",
+  "failures": [],
+  "notes": [],
+  "pageUrl": "http://127.0.0.1:34181/"
+}

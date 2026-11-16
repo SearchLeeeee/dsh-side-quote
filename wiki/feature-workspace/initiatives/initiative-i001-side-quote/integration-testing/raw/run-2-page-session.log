@@ -1,0 +1,21 @@
+[side-quote e2e] instance=http://127.0.0.1:34181/ port=34181 profile=side-quote-verify driver=http://127.0.0.1:39261 evidence=D:\dsh-side-quote\wiki\feature-workspace\initiatives\initiative-i001-side-quote\integration-testing\evidence
+[integration] baseline: gate=false takeoverKey=null pluginActive=true
+[integration] --- I-01 ---
+[integration] I-01: PASS
+[integration] --- I-02 ---
+[integration] I-02: PASS
+[integration] --- I-03 ---
+[integration] I-03: PASS
+[integration] --- I-04 ---
+[integration] I-04: PASS
+[integration] --- I-05 ---
+[integration] I-05: FAIL — the long text selection must exceed the character bound: {"length":0}
+[integration] --- I-06 ---
+[integration] I-06: PASS
+[integration] --- I-07 ---
+[integration] I-07: PASS
+[integration] --- I-08 ---
+[integration] I-08: PASS
+[integration] summary written to D:\dsh-side-quote\wiki\feature-workspace\initiatives\initiative-i001-side-quote\integration-testing\evidence\integration-summary.json
+[integration] rows: I-01=PASS I-02=PASS I-03=PASS I-04=PASS I-05=FAIL I-06=PASS I-07=PASS I-08=PASS
+[integration] failures: I-05

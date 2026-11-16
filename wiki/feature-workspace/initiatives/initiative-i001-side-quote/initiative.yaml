@@ -6,6 +6,9 @@ context_refs:
 - path: feasibility/confirmed-constraints.md
   kind: prior-constraints
   required: true
+- path: integration-testing/integration-test-handoff.md
+  kind: integration-test-handoff
+  required: true
 features:
 - id: I001-F01
   manifest: features/feat-i001-f01-text-preview-quote/feature.yaml
@@ -16,3 +19,8 @@ initial_decomposition:
   feature_ids:
   - I001-F01
   - I001-F02
+integration_testing:
+  handoff: integration-testing/integration-test-handoff.md
+  passed: true
+  evidence:
+  - integration-testing/integration-run-record.md
