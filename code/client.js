@@ -643,6 +643,12 @@ window.__ModuleLoader__.load({
         return parentSelectionOwned(own, sessionId, anchorElement)
       }
 
+      // `stateOf` and `click` both read the capture through the adapter before
+      // attributing it, which the witness branch requires. One observable
+      // consequence: when the parent selection has vanished (`anchor === null`, so
+      // the text adapter reports no text) a click now says `error.noSelection`,
+      // where F01's anchor-first check said `error.ownership`. The three-element
+      // comparison itself is unchanged (U-14 附加, W-1).
       function stateOf(element) {
         if (disposed || element === null || element === undefined) return { enabled: false }
         const entry = buttons.get(element)
@@ -834,14 +840,18 @@ window.__ModuleLoader__.load({
      * Encode the page as a JSON string literal for the bootstrap script.
      *
      * JSON keeps the page inert; every `</` becomes the equivalent `<\/` so the
-     * payload can never close the outer script, and no string concatenation ever
-     * places page text into the script (implementation.md §5.2).
+     * payload can never close the outer script, every `<!--` becomes `<\!--` so a
+     * page comment opener cannot put the outer `</script>` into the double-escaped
+     * state where the parser consumes it as text, and no string concatenation ever
+     * places page text into the script (implementation.md §5.2). Both escapes are
+     * JavaScript string escapes inside the literal (`\/` and `\!` read as `/` and
+     * `!`), so the payload still evaluates back to the page byte for byte.
      * @param {unknown} pageHtml - the decoded page.
      * @returns {string} a script-safe JSON literal.
      */
     function encodeHtmlPayload(pageHtml) {
       const text = String(pageHtml === null || pageHtml === undefined ? '' : pageHtml)
-      return JSON.stringify(text).replace(/<\//gu, '<\\/')
+      return JSON.stringify(text).replace(/<\//gu, '<\\/').replace(/<!--/gu, '<\\!--')
     }
 
     /**
@@ -978,6 +988,8 @@ document.close()
         if (disposed || frame === null || frame === undefined) return () => {}
         if (entries.has(frame)) return () => {}
         const entry = {
+          // `unmounted` only guards one defensive path: a deadline callback can
+          // still arrive after `detach` deleted the entry, and it must not report.
           state: { ready: false, text: '', failed: false, unmounted: false },
           timer: null,
           /** Cancel the deadline; a settled frame needs none. */
@@ -1447,7 +1459,9 @@ document.close()
         sync()
         if (!persistedOn) return
         if (applied) say('info', 'info.htmlEnabled')
-        else say('error', 'error.htmlGateUnavailable')
+        // Only a closed gate is explained by naming the gate; a registration that
+        // failed for any other reason must not claim the gate is off.
+        else say('error', gateOpen() ? 'error.htmlTakeoverFailed' : 'error.htmlGateUnavailable')
       }
 
       /** Release everything this takeover registered; safe to call twice. */
@@ -1497,12 +1511,20 @@ document.close()
     }
 
     /**
+     * Source of the disabled toggle's description ids. One page-wide counter is
+     * enough: the platform React subset this bundle runs against has no `useId`.
+     */
+    let htmlToggleReasonSeq = 0
+
+    /**
      * Build the header takeover toggle.
      *
      * It renders for HTML paths only and stays clickable while the takeover is off,
      * because switching it on is how the user expresses the preference. While the
      * gate is closed and the preference is on it is disabled and explains why
-     * (implementation.md §7, U-26).
+     * (implementation.md §7, U-26). The reason reaches assistive technology through
+     * `aria-describedby`, because a `disabled` control's `title` tooltip is browser
+     * behaviour with no guarantee.
      * @param {object} React - the platform React module.
      * @param {{html: object, t: (key: string) => string}} deps - the takeover surface and the fallback translate.
      * @returns {Function} the component.
@@ -1512,6 +1534,12 @@ document.close()
       return function SideQuoteHtmlToggle(props) {
         const applies = matchesHtmlPreviewPath(props.absolutePath)
         const translate = typeof props.t === 'function' ? props.t : deps.t
+        // One stable id per mounted toggle, reused by `aria-describedby` and its span.
+        const reasonId = React.useRef(null)
+        if (reasonId.current === null) {
+          htmlToggleReasonSeq += 1
+          reasonId.current = `side-quote-html-toggle-reason-${htmlToggleReasonSeq}`
+        }
         const [current, setCurrent] = React.useState(html.snapshot())
         React.useEffect(() => {
           if (!applies) return undefined
@@ -1525,17 +1553,39 @@ document.close()
         // Outside the HTML formats this plugin renders nothing at all.
         if (!applies) return null
         const label = translate('html.toggleLabel')
-        return React.createElement('button', {
+        // The reason is translated once and used for both the `title` the existing
+        // e2e reads and the described node; the enabled state has neither reason.
+        const reason = current.disabled ? translate('html.toggleGateReason') : null
+        const attributes = {
           type: 'button',
           'data-side-quote-html-toggle': '',
           'aria-pressed': current.persistedOn ? 'true' : 'false',
           'aria-label': label,
           disabled: current.disabled,
-          title: current.disabled ? translate('html.toggleGateReason') : translate('html.toggleTooltip'),
+          title: reason === null ? translate('html.toggleTooltip') : reason,
           onClick: () => {
             html.toggle()
           },
-        }, label)
+        }
+        if (reason !== null) attributes['aria-describedby'] = reasonId.current
+        const children = [label]
+        if (reason !== null) {
+          // Inline-only hiding: no stylesheet, and the text stays in the tree the
+          // accessibility layer reads.
+          children.push(React.createElement('span', {
+            id: reasonId.current,
+            'data-side-quote-html-toggle-reason': '',
+            style: {
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              overflow: 'hidden',
+              clip: 'rect(0 0 0 0)',
+              whiteSpace: 'nowrap',
+            },
+          }, reason))
+        }
+        return React.createElement('button', attributes, ...children)
       }
     }
 
@@ -1677,6 +1727,7 @@ document.close()
         'info.htmlEnabled': '已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。',
         'info.htmlBridgeUnavailable': '当前 HTML 页面无法建立引用桥，划词引用暂不可用。',
         'error.htmlGateUnavailable': '未能接管 HTML 预览：需要先开启「开发者工具」（页面脚本）。',
+        'error.htmlTakeoverFailed': '未能接管 HTML 预览：接管组件注册失败，请稍后重试。',
       },
       en: {
         'quote.button': 'Quote',
@@ -1700,6 +1751,7 @@ document.close()
         'info.htmlEnabled': 'HTML preview taken over: text can now be quoted; external CSS, scripts and images will not load.',
         'info.htmlBridgeUnavailable': 'This page could not establish the quote bridge, so quoting is unavailable for now.',
         'error.htmlGateUnavailable': 'The HTML preview could not be taken over: Developer tools (page scripts) must be on.',
+        'error.htmlTakeoverFailed': 'The HTML preview could not be taken over: registering the takeover failed; try again later.',
       },
     }
 

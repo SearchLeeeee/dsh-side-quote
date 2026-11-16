@@ -3,9 +3,12 @@
  * `core/testing-and-acceptance.md` §2 (plus the U-20 whitelist guard and the
  * header-control / body structure from `core/implementation.md` §4, §5.1, §7).
  *
- * Written before the implementation on purpose (red → green). Everything here is
- * headless: fake window, fake storage, fake blob-URL factory, manual clock and a
- * minimal hook runtime, so no browser and no DSH instance are involved.
+ * U-26…U-31 and the header-control / body-component cases were added after the
+ * implementation was wired (regression coverage); U-23…U-25 and part of the
+ * structure cases in `html-bridge.test.mjs` were written first (red → green).
+ * No red → green output was kept for either batch. Everything here is headless:
+ * fake window, fake storage, fake blob-URL factory, manual clock and a minimal
+ * hook runtime, so no browser and no DSH instance are involved.
  */
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
@@ -528,6 +531,31 @@ test('U-28 开启/关闭/卸载的计数：注册、监听、缓存、blob 全�
 })
 
 /* -------------------------------------------------------------------------- *
+ * U-28 (W-2) — the unmount path itself releases the blob, unarmed by the test
+ * -------------------------------------------------------------------------- */
+
+test('U-28 附加：正文组件的卸载路径自己释放 blob，测试不手动调用 releaseFrameSource', () => {
+  const env = createFakeContext({ gateOpen: true })
+  const plugin = internals.applyPlugin(env.ctx, env.host)
+  const hooks = createHookReact()
+  const Body = internals.createHtmlBodyComponent(hooks.react, { html: plugin.html, t: (key) => key })
+  const tree = hooks.mount(Body, { content: { kind: 'bytes', data: new TextEncoder().encode('<!doctype html><p>hi</p>') } })
+  assert.equal(tree.type, 'div')
+  assert.equal(env.url.created.length, 1, 'the body component created one source')
+  assert.equal(env.url.revoked.length, 0, 'the test never releases the source itself')
+
+  // The fake host owns no React renderer, so the tree's cleanup is registered as
+  // an effect: `disposeAll()` then runs exactly what slot removal runs on unload.
+  env.ctx.effect(() => () => {
+    hooks.unmount()
+  })
+  env.disposeAll()
+  assert.equal(env.url.created.length >= 1, true, 'at least one blob URL must have been created')
+  assert.equal(env.url.revoked.length, env.url.created.length, 'the implementation path must revoke every created URL')
+  assert.equal(env.url.revoked[0], env.url.created[0].url, 'the revoked URL is the one the component created')
+})
+
+/* -------------------------------------------------------------------------- *
  * U-29 — notice budget
  * -------------------------------------------------------------------------- */
 
@@ -556,6 +584,21 @@ test('U-29 通知预算：自检各分支恰一条，桥降级按页目标去重
   assert.equal(offPlugin.html.snapshot().effective, true)
   offPlugin.html.toggle()
   assert.deepEqual(off.notifications, [], 'turning off must not add a notice')
+
+  // A registration that fails while the gate is open is not the gate's fault:
+  // exactly one error, and it names the takeover rather than Developer tools.
+  const broken = createFakeContext({ storage: createFakeStorage({}), gateOpen: true })
+  broken.ctx.documentPreviews.register = () => {
+    throw new Error('documentPreviews: registration refused')
+  }
+  const brokenPlugin = internals.applyPlugin(broken.ctx, broken.host)
+  assert.equal(brokenPlugin.html.snapshot().effective, false, 'a failed registration leaves the takeover off')
+  brokenPlugin.html.toggle()
+  assert.equal(broken.notifications.length, 1, 'a failed self-check stays at exactly one notice')
+  assert.equal(broken.notifications[0].level, 'error')
+  assert.equal(broken.notifications[0].text, 'error.htmlTakeoverFailed')
+  assert.equal(broken.definitions.size, 0, 'the failed open must unwind its definition')
+  assert.equal(broken.window.listenerCount(), 0, 'the failed open must unwind its bridge listener')
 
   // Bridge timeout: one info per page target, never repeated for the same page.
   const failing = createFakeContext({ gateOpen: true })
@@ -641,6 +684,7 @@ test('U-31 中英字典：新增键集合完全一致，内容文案不在字典
   const added = zh.filter((key) => /^(?:html\.|info\.html|error\.html)/u.test(key))
   assert.deepEqual(added, [
     'error.htmlGateUnavailable',
+    'error.htmlTakeoverFailed',
     'html.failed',
     'html.frame',
     'html.quoteButton',
@@ -684,6 +728,34 @@ test('头部开关位点：只在 HTML 路径渲染、aria-pressed 反映偏好�
   assert.equal(lockedTree.props['aria-pressed'], 'true', 'aria-pressed reflects the persisted choice')
   assert.equal(lockedTree.props.disabled, true, 'a closed gate makes the toggle unavailable')
   assert.equal(lockedTree.props.title, 'html.toggleGateReason', 'a disabled control must say why')
+
+  // The reason must also reach assistive technology: a `disabled` control's
+  // `title` tooltip is browser behaviour, `aria-describedby` is not.
+  const descriptionId = lockedTree.props['aria-describedby']
+  assert.equal(typeof descriptionId, 'string', 'a disabled toggle must describe itself')
+  assert.notEqual(descriptionId, '')
+  assert.equal(descriptionId.startsWith('side-quote-html-toggle-reason-'), true)
+  const description = lockedTree.children.find(
+    (child) => typeof child === 'object' && child !== null && child.props !== undefined && child.props.id === descriptionId,
+  )
+  assert.notEqual(description, undefined, 'the described element must be in the same render output')
+  assert.equal(description.type, 'span')
+  assert.equal(description.children[0], 'html.toggleGateReason', 'the description carries the same translated reason')
+  assert.deepEqual(description.props.style, {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    overflow: 'hidden',
+    clip: 'rect(0 0 0 0)',
+    whiteSpace: 'nowrap',
+  }, 'the description is visually hidden inline, without a stylesheet')
+
+  // A second mounted toggle must not reuse the first one's description id.
+  const secondHooks = createHookReact()
+  const SecondToggle = internals.createHtmlToggleComponent(secondHooks.react, { html: lockedPlugin.html, t: (key) => key })
+  const secondTree = secondHooks.mount(SecondToggle, { absolutePath: 'samples/page.html' })
+  assert.notEqual(secondTree.props['aria-describedby'], descriptionId, 'each toggle describes itself under its own id')
+
   assert.equal(lockedHooks.mount(LockedToggle, { absolutePath: 'notes/a.md' }), null, 'the toggle is HTML-only')
   assert.equal(lockedHooks.mount(LockedToggle, { absolutePath: 'report.pdf' }), null)
 
@@ -697,6 +769,8 @@ test('头部开关位点：只在 HTML 路径渲染、aria-pressed 反映偏好�
   assert.equal(offTree.props['aria-pressed'], 'false')
   assert.equal(offTree.props.disabled, false, 'turning the preference on must stay possible')
   assert.equal(offTree.props.title, 'html.toggleTooltip')
+  assert.equal(offTree.props['aria-describedby'], undefined, 'an enabled toggle has no reason to describe')
+  assert.equal(offTree.children.length, 1, 'an enabled toggle carries its label only')
   offTree.props.onClick()
   assert.equal(off.notifications.length, 1)
   assert.equal(off.notifications[0].text, 'error.htmlGateUnavailable')

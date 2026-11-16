@@ -112,6 +112,26 @@ function collapse(text) {
   return String(text).replace(/\s+/gu, ' ').trim()
 }
 
+/**
+ * Read the text assistive technology receives from the toggle's
+ * `aria-describedby` target. A `disabled` control's native `title` tooltip is
+ * browser behaviour and invisible to a screenshot, so the DOM is read instead.
+ * @param {object} page - the page.
+ * @returns {Promise<string>} the described text, or '' when nothing is described.
+ */
+async function readToggleDescription(page) {
+  return page.evaluate(`(() => {
+    const toggle = [...document.querySelectorAll('[${HTML_MARKERS.toggle}]')]
+      .find((candidate) => candidate.getClientRects().length > 0) || null;
+    if (toggle === null) return '';
+    const ids = (toggle.getAttribute('aria-describedby') || '').split(/\\s+/u).filter((id) => id !== '');
+    return ids.map((id) => {
+      const node = document.getElementById(id);
+      return node === null ? '' : (node.textContent || '');
+    }).join(' ').replace(/\\s+/gu, ' ').trim();
+  })()`)
+}
+
 /** Wait until the composer grew, then return the appended delta. */
 async function waitForComposerDelta(page, before, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs
@@ -535,6 +555,12 @@ scenario('E-16 闸门关闭：点击开关恰一条 error、正文不接管、�
     const pressed = await waitForHtmlToggle(page, { pressed: true, disabled: true })
     assert.notEqual(pressed.hint, '', 'the disabled toggle must carry a readable reason, not just look grey')
     assert.notEqual(pressed.hint, enabledHint, 'the disabled state must state a reason that the enabled state does not')
+
+    // The reason must be in the accessibility tree, not only in a `title` whose
+    // tooltip a `disabled` control may never show.
+    const description = await readToggleDescription(page)
+    assert.notEqual(description, '', 'the disabled toggle must describe its reason in the DOM')
+    assert.equal(pressed.hint.includes(description), true, 'the described text is the reason the toggle exposes')
 
     await new Promise((resolve) => setTimeout(resolve, 900))
     assert.equal(await countElements(page, TAKEOVER_BODY), 0, 'no takeover body may be registered while the gate is closed')

@@ -4,9 +4,11 @@
  * UTF-8 decode (§5.1) and the adapter's frame selection (§6.2) from
  * `core/implementation.md`.
  *
- * Written before the implementation on purpose (red → green). Everything here is
- * headless: a fake window, fake iframes and a manual clock. No browser, no DSH
- * instance, no React.
+ * U-23…U-25 and part of the bootstrap/decode/adapter structure cases were
+ * written before the implementation (red → green); the remaining cases were
+ * added after the wiring (regression coverage). No red → green output was kept
+ * for either batch. Everything here is headless: a fake window, fake iframes and
+ * a manual clock. No browser, no DSH instance, no React.
  */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -277,6 +279,21 @@ test('桥引导脚本：预写注入、页面 JSON 嵌入并对 </script> 转义
   assert.notEqual(escaped, null)
   assert.equal(JSON.parse(escaped[1]), '</script><script>alert(1)</script>', 'the escape must stay lossless')
   assert.equal(/<\/script/iu.test(escaped[1]), false)
+
+  // A page comment opener puts the outer `</script>` into the double-escaped
+  // state, so the opener is escaped too and the page is still written and
+  // reported: `<\!--` is not parsed as an HTML comment delimiter.
+  const commentPage = '<!--<script>alert(1)</script>'
+  const commented = internals.createHtmlBootstrap(commentPage)
+  const commentPayload = /const page=("(?:[^"\\]|\\.)*")\n/u.exec(commented)
+  assert.notEqual(commentPayload, null, 'the page must still be embedded as one literal')
+  assert.equal(commentPayload[1].includes('<!--'), false, 'no comment opener may survive inside the payload')
+  assert.equal(commentPayload[1].includes('<\\!--'), true, 'the comment opener must be escaped')
+  // The literal still evaluates back to the page (`\!` is a plain `!` in a JS
+  // string), so what the frame writes is byte-identical to the file.
+  assert.equal(new Function(`return ${commentPayload[1]}`)(), commentPage, 'the payload must stay lossless')
+  assert.equal(commented.includes('kind:"ready"'), true, 'the bridge still reports ready before the page write')
+  assert.equal(commented.indexOf('kind:"ready"') < commented.indexOf('document.open()'), true, 'ready still precedes the write')
 
   // Capture-phase window listeners, installed before the page is written.
   assert.equal(bootstrap.includes('window.addEventListener("selectionchange",report,true)'), true)

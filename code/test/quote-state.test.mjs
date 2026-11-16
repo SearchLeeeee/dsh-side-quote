@@ -311,6 +311,21 @@ test('U-14 附加：readSelection 抛错只发一条 error 且不外泄', () => 
   assert.equal(actions.isBusy(), false)
 })
 
+test('U-14 附加（W-1）：父文档选区消失时文本适配器报 error.noSelection', () => {
+  // The parent selection is gone: `anchor === null` and the document no longer
+  // reports any text. F01 checked the anchor first and answered "ownership"; the
+  // witness-capable seam reads the capture first, so the honest answer is "there
+  // is no selection". The three-element comparison itself is unchanged.
+  const harness = createActionHarness({ anchor: null, endAnchor: null, selectionText: '' })
+  assert.equal(harness.actions.stateOf(BUTTON).enabled, false, 'no selection greys the button')
+  harness.actions.click(BUTTON)
+  assert.equal(harness.inserted.length, 0, 'nothing may be inserted')
+  assert.equal(harness.history.size(), 0, 'no file may be recorded as already quoted')
+  assert.equal(harness.notifications.length, 1, 'exactly one error')
+  assert.equal(harness.notifications[0].level, 'error')
+  assert.equal(harness.notifications[0].text, 'error.noSelection')
+})
+
 test('U-16 适配器接缝：重复 id 抛错、注销后不再调用、假适配器免改核心可用', () => {
   const registry = internals.createAdapterRegistry()
   const calls = { match: 0, readSelection: 0 }

@@ -8,7 +8,7 @@
  *   - `SIDE_QUOTE_E2E_BASE_URL`  the isolated DSH instance (default http://127.0.0.1:3181)
  *   - `SIDE_QUOTE_E2E_CDP`       a Chromium DevTools endpoint (`ws://…` or `http://host:port`)
  *   - `SIDE_QUOTE_E2E_EVIDENCE_DIR`  where screenshots and their sidecars are written
- *   - `SIDE_QUOTE_E2E_PROFILE`   optional; the profile name recorded in the sidecars
+ *   - `SIDE_QUOTE_E2E_PROFILE`   required; the profile name recorded in the sidecars
  *   - `SIDE_QUOTE_E2E_ALLOW_LIVE`  optional escape hatch for the live-port guard
  *
  * A missing driver or a missing instance makes the suites `skip`, never pass.
