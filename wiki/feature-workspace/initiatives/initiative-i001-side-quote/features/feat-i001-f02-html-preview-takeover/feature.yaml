@@ -2,8 +2,8 @@ id: I001-F02
 title: HTML 预览接管适配（默认关闭、显式开启）
 leaf: true
 owner: core
-phase: implementation
-state: in-progress
+phase: ready-to-merge
+state: ready
 wave: 2
 depends_on:
 - I001-F01
@@ -11,6 +11,45 @@ context_refs:
 - path: ../../feasibility/confirmed-constraints.md
   kind: prior-constraints
   required: true
+- path: code-ai/implementation-plan.md
+  kind: implementation-plan
+  required: true
+- path: evidence/review-gate-record.md
+  kind: review-evidence
+  required: true
+- path: evidence/verification-record.md
+  kind: verification-evidence
+  required: true
+acceptance:
+  passed: true
+  evidence:
+  - evidence/verification-record.md
+  - evidence/review-gate-record.md
+  - evidence/e2e/E-10-3-comparison.json
+  - evidence/e2e/E-11-1-takeover-on.png
+  - evidence/e2e/E-12-1-drag-quote.png
+  - evidence/e2e/E-16-1-gate-closed.png
+  - evidence/e2e/E-18-1-plugin-disabled.png
+  - evidence/manual-final/manual-summary.json
+  achievements: 在独立 profile side-quote-verify（临时 DSH_HOME）与端口 34181 上通过 AC-17..AC-30；接管默认关闭、闸门
+    联动与回落、桥四重校验与字节级关闭态等价均有浏览器证据；提交版端到端 17/17（E-01..E-08 与 E-10..E-18）、 单元层 71 项（54
+    通过 / 17 为端到端 skip）与人工回归 3/3 全部通过；live 实例 3081（PID 67988）全程未重启、 未终止、未写入。
+  notes: 关闭态等价在"插件停用后整页刷新"阶段取基线（平台在插件停用后不自动回落，见 R-2 与 code/README.md 已知取舍第 10 条）；桥与页面同
+    realm 可伪造上报且无令牌，属已接受边界，未写成"已验证安全"；契约端口 3181 落在 Windows 保留区间 3119-3218，按 core/testing-and-acceptance.md
+    §4.1 用 34181 等价替代。
+closure:
+  canonical_docs:
+  - product/product-vision.md
+  - architecture/module-boundaries.md
+  - implementation/frontend/sidebar-quote-contract.md
+  - implementation/frontend/sidebar-quote-implementation.md
+  - testing/sidebar-quote-acceptance.md
+  validation_evidence:
+  - evidence/verification-record.md
+  - evidence/workspace-validation.md
+  - evidence/e2e/E-10-3-comparison.json
+  - evidence/manual-final/manual-summary.json
+  tombstone_target: ../../registry.yaml
 scope_gate:
   scores:
   - 1
@@ -69,5 +108,5 @@ consistency_matrix:
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
 next_action:
-  skill: hl-feature-orchestrator
-  instruction: 在本会话完成代码调研与获批 implementation-plan.md，随后实现 HTML 预览接管、固定评审门与分离验收
+  skill: hl-initiative-merge
+  instruction: I001 的两个 Leaf 均已 ready-to-merge / ready；下一步运行 Initiative 集成验收
