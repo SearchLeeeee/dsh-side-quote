@@ -167,6 +167,13 @@ scenario('E-05 敏感文件：原样插入且恰好一条 info 警示、没有 e
   )
   const sensitive = notices.filter((notice) => SENSITIVE_WARNING.some((warning) => notice.text.includes(warning)))
   assert.equal(sensitive.length, 1, `exactly one sensitive notice is allowed, saw ${JSON.stringify(notices)}`)
+  // Level, not just wording: the warning must arrive through the info live
+  // region, so a regression that raises it as an error is caught here.
+  assert.equal(
+    sensitive[0].role,
+    'status',
+    `the sensitive warning must be an info notice (role="status"), saw ${JSON.stringify(sensitive)}`,
+  )
   const raised = notices.filter((notice) => ERROR_COPY.some((copy) => notice.text.includes(copy)))
   assert.deepEqual(raised, [], `a successful sensitive quote must not raise an error notice: ${JSON.stringify(raised)}`)
   await shot('E-05-1-sensitive')

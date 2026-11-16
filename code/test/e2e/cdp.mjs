@@ -36,6 +36,7 @@ export const LIVE_PORT = '3081'
 export const SKIP_NO_INSTANCE = '未提供 DSH 实例'
 export const SKIP_NO_DRIVER = '未提供浏览器驱动'
 export const SKIP_NO_EVIDENCE_DIR = '未提供证据目录（SIDE_QUOTE_E2E_EVIDENCE_DIR）'
+export const SKIP_NO_PROFILE = '未提供实例 profile（SIDE_QUOTE_E2E_PROFILE）'
 export const SKIP_LIVE_INSTANCE = '拒绝对 live 端口 3081 运行端到端用例'
 
 /** Fixed viewport, so every screenshot can name the size it was taken at. */
@@ -125,6 +126,11 @@ function portOf(url) {
 export async function resolveSkipReason(config, env = process.env) {
   if (config.cdp === '') return SKIP_NO_DRIVER
   if (config.evidenceDir === '') return SKIP_NO_EVIDENCE_DIR
+  // Evidence has to prove which instance produced it, so a run that writes
+  // screenshots must also name the profile it ran against.
+  if (config.profile === '' || config.profile === 'unspecified') {
+    return `${SKIP_NO_PROFILE}：证据 sidecar 需要它证明实例隔离，请设置该变量`
+  }
   if (config.port === LIVE_PORT && (env.SIDE_QUOTE_E2E_ALLOW_LIVE ?? '') !== '1') {
     return `${SKIP_LIVE_INSTANCE}（${config.baseUrl}；如确需运行，设置 SIDE_QUOTE_E2E_ALLOW_LIVE=1）`
   }
@@ -353,21 +359,6 @@ export async function openPage(client, url) {
         }
         await new Promise((resolve) => setTimeout(resolve, intervalMs))
       }
-    },
-    /**
-     * Read the viewport centre of a page-side element expression.
-     * @param {string} expression - expression resolving to an Element or null.
-     * @returns {Promise<{x: number, y: number}|null>} the point.
-     */
-    async centerOf(expression) {
-      return page.evaluate(`(() => {
-        const element = ${expression};
-        if (!element) return null;
-        element.scrollIntoView({ block: 'center', inline: 'center' });
-        const rect = element.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return null;
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      })()`)
     },
     /**
      * Click a point with a real mouse sequence, so `mousedown` handlers and the
