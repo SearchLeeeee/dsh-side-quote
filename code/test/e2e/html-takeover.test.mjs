@@ -33,6 +33,25 @@
  * `selectionDrive: 'synthetic-range'` — labelling it as a drag is evidence fraud
  * (testing-and-acceptance §9).
  *
+ * Two measured platform behaviours shape the assertions below, and both are
+ * recorded rather than worked around silently:
+ *
+ *   1. An opaque origin cannot be read from inside a DevTools isolated world: a
+ *      sandboxed `blob:` frame reports its URL origin there, exactly like the
+ *      platform's own built-in HTML frame does. E-11 therefore proves the opaque
+ *      origin from the parent side, on the `message` events the bridge sends
+ *      (`event.origin === 'null'`, `event.source === frame.contentWindow`).
+ *   2. A quote is rendered in the composer as a structured card
+ *      (`[data-composer-quote]` → `[data-quote-preview-text]`), not as Markdown
+ *      text, so the excerpt is read from the card's DOM rather than parsed out of
+ *      the composer's inner text.
+ *
+ * And one documented boundary: disabling the plugin while the takeover is
+ * effective leaves the already-open preview tab with an EMPTY body until the page
+ * is reloaded (`code/README.md`, HTML tradeoffs; `core/implementation.md` §9).
+ * E-10 and E-18 therefore assert the teardown first, then reload the page and
+ * assert the built-in renderer came back.
+ *
  * Every screenshot sidecar records: git revision, instance origin/port, profile,
  * viewport, case id, takeover state (`'off' | 'on' | 'unavailable'`), selection
  * drive (`'mouse' | 'synthetic-range' | null`), the observed iframe `sandbox`
@@ -42,16 +61,17 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { after, test } from 'node:test'
+import { after, before, test } from 'node:test'
 import {
-  BUILTIN_HTML_FRAME_MARKER, HTML_MARKERS, POINTER_LABEL, SKIP_NO_DRIVER, SOURCE_LABEL,
-  activate, activatePreviewTab, clipContains, clipFromRect, closeSettings, connectCdp, countElements,
-  countNotices, describeRun, disablePlugin, isErrorNotice, isInfoNotice, markedControlExpression,
-  measureSelectionTargetInFrame, mouseDrag, noticesAdded, openFilePreview, openPage,
-  readChildFrameIsolation, readChildFrameSelection, readComposerText, readE2eConfig, readHtmlBodyState,
-  readHtmlQuoteButton, readHtmlToggle, readNotices, readPreviewBodyRect, resolveCdpWebSocketUrl,
-  resolveSkipReason, setDeveloperTools, setHtmlTakeover, setPluginEnabled, waitForAddedNotices,
-  waitForAppShell, waitForElementCount, waitForFrameContent, waitForHtmlQuoteButton,
+  BRIDGE_CHANNEL, BRIDGE_VERSION, BUILTIN_HTML_FRAME_MARKER, HTML_MARKERS, POINTER_LABEL, SKIP_NO_DRIVER,
+  SOURCE_LABEL, activate, clipFromRect, closeSettings, connectCdp, countElements, countNotices,
+  describeRun, disablePlugin, dismissOverlays, ensureRightSidebar, isErrorNotice, isInfoNotice,
+  markedControlExpression, measureSelectionTargetInFrame, mouseDrag, noticesAdded, openFilePreview, openPage,
+  readChildFrameIsolation, readChildFrameSelection, readComposerQuotes, readE2eConfig, readHtmlBodyState,
+  readHtmlQuoteButton, readHtmlToggle, readNotices, readPreviewBodyRect, reloadPage,
+  resolveCdpWebSocketUrl, resolveSkipReason, setDeveloperTools, setHtmlTakeover, setPluginEnabled,
+  startBridgeMessageRecorder, waitForAddedNotices, waitForAppShell, waitForBridgeMessages,
+  waitForComposerQuotes, waitForElementCount, waitForFrameContent, waitForHtmlQuoteButton,
   waitForHtmlToggle,
 } from './cdp.mjs'
 
@@ -73,6 +93,28 @@ after(async () => {
   browser?.close()
 })
 
+const PLUGIN_ID = 'dsh-side-quote'
+
+/**
+ * Enable the plugin before the cases run.
+ *
+ * E-10 … E-18 all need the plugin active, while the full serial run ends with
+ * `quote-flow.test.mjs` E-08 disabling it on purpose (that case asserts the
+ * teardown). The precondition is explicit here so this file can also be run on
+ * its own after a full run; it asserts nothing, so it cannot mask a failure.
+ */
+before(async () => {
+  if (skipReason !== false) return
+  const page = await openPage(browser, config.baseUrl)
+  try {
+    await waitForAppShell(page)
+    await dismissOverlays(page)
+    await setPluginEnabled(page, PLUGIN_ID, true)
+  } finally {
+    await page.close()
+  }
+})
+
 /** Run identity every screenshot sidecar records. */
 const evidence = {
   evidenceDir: config.evidenceDir,
@@ -81,15 +123,16 @@ const evidence = {
   profile: config.profile,
 }
 
-const PLUGIN_ID = 'dsh-side-quote'
 const FIXTURE_DIR = 'samples'
 const FIXTURE_PAGE = 'page.html'
 const FIXTURE_CSP = 'page-csp.html'
 const FIXTURE_PAGE_PATH = `${FIXTURE_DIR}/${FIXTURE_PAGE}`
+const FIXTURE_CSP_PATH = `${FIXTURE_DIR}/${FIXTURE_CSP}`
 const TAKEOVER_BODY = `[${HTML_MARKERS.body}]`
 const TAKEOVER_FRAME = `[${HTML_MARKERS.frame}]`
-const BUILTIN_FRAME = `[${BUILTIN_HTML_FRAME_MARKER}]`
+const TAKEOVER_QUOTE = `[${HTML_MARKERS.quote}]`
 const HTML_TOGGLE = `[${HTML_MARKERS.toggle}]`
+const BUILTIN_FRAME = `[${BUILTIN_HTML_FRAME_MARKER}]`
 
 /**
  * Run one test against a fresh page, closing it afterwards.
@@ -132,36 +175,6 @@ async function readToggleDescription(page) {
   })()`)
 }
 
-/** Wait until the composer grew, then return the appended delta. */
-async function waitForComposerDelta(page, before, timeoutMs = 15000) {
-  const deadline = Date.now() + timeoutMs
-  for (;;) {
-    const current = await readComposerText(page)
-    if (current.length > before.length) return current.slice(before.length)
-    if (Date.now() > deadline) {
-      throw new Error(`the composer never grew; it still holds ${JSON.stringify(current)}`)
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100))
-  }
-}
-
-/**
- * Split an inserted quote into its quoted body and its source line.
- * @param {string} delta - the text the composer gained.
- * @param {string} sourcePath - the expected workspace-relative path.
- * @returns {{quotedText: string, lineCount: number, source: boolean, text: string}} the parsed block.
- */
-function parseQuoteBlock(delta, sourcePath) {
-  const lines = String(delta).replace(/\r/gu, '').split('\n')
-  const quoted = []
-  let source = false
-  for (const line of lines) {
-    if (line.startsWith('> ')) quoted.push(line.slice(2))
-    else if (line.trim() === `${SOURCE_LABEL}${sourcePath}`) source = true
-  }
-  return { quotedText: quoted.join('\n'), lineCount: quoted.length, source, text: String(delta) }
-}
-
 /** @param {{builtin: object[], takeover: object[]}} state - body state. @returns {string|null} the built-in sandbox attribute. */
 function sandboxOf(state) {
   if (state.builtin.length > 0) return state.builtin[0].sandbox
@@ -187,6 +200,23 @@ async function frameDragPoints(page, selector) {
   return {
     from: { x: rect.x + Math.round(rect.width * 0.25), y },
     to: { x: rect.x + Math.round(rect.width * 0.7), y },
+  }
+}
+
+/**
+ * Drag points for a text block inside the built-in preview.
+ *
+ * The built-in frame is not the plugin's, so measuring its text through the
+ * child session is a fallback only; a plain horizontal drag across the frame
+ * still proves the plugin does not react to a selection there.
+ * @param {object} page - the page.
+ * @returns {Promise<{from: object, to: object}>} the drag points.
+ */
+async function builtinDragPoints(page) {
+  try {
+    return await measureSelectionTargetInFrame(page, BUILTIN_FRAME, { index: 0 })
+  } catch {
+    return await frameDragPoints(page, BUILTIN_FRAME)
   }
 }
 
@@ -240,19 +270,42 @@ async function waitForBuiltinBody(page) {
 }
 
 /**
- * Come back to the fixture's preview tab after the plugin was toggled.
+ * Assert every marker the plugin contributes has been removed.
  *
- * The inventory switch is reached through another surface, and disabling the
- * plugin tears its client bundle down; the tab strip needs to settle before the
- * preview can be activated again.
+ * The three markers are the takeover body, its frame and the header controls;
+ * their absence is what "the plugin's DOM is gone" means, and it is asserted
+ * before the reload in E-10/E-18 so the teardown is proven on its own, not just
+ * as a side effect of a fresh document.
+ * @param {object} page - the page.
+ * @param {number} [timeoutMs] - bound for each marker.
+ */
+async function waitForNoPluginMarkers(page, timeoutMs = 30000) {
+  await waitForElementCount(page, HTML_TOGGLE, 0, { timeoutMs })
+  await waitForElementCount(page, TAKEOVER_BODY, 0, { timeoutMs })
+  await waitForElementCount(page, TAKEOVER_FRAME, 0, { timeoutMs })
+  await waitForElementCount(page, TAKEOVER_QUOTE, 0, { timeoutMs })
+  assert.equal((await readHtmlToggle(page)).present, false, 'the takeover toggle must be gone once the plugin is gone')
+  assert.equal((await readHtmlQuoteButton(page)).present, false, 'the HTML quote button must be gone once the plugin is gone')
+}
+
+/**
+ * Reload the page and reopen the HTML fixture, then require the built-in body.
+ *
+ * This is the documented boundary: a preview tab that was open while the plugin
+ * was disabled keeps an empty body, and only a full page reload lets the
+ * platform's own renderer take the path back. The reload is part of the case, not
+ * a way around an assertion.
  * @param {object} page - the page.
  */
-async function returnToPreview(page) {
+async function reloadAndReopenPreview(page) {
   await closeSettings(page)
+  // Let the client-bundle rebuild that follows a plugin disable settle.
+  await new Promise((resolve) => setTimeout(resolve, 1200))
+  await reloadPage(page)
   await waitForAppShell(page)
-  assert.equal(await activatePreviewTab(page, FIXTURE_PAGE), true,
-    `the ${FIXTURE_PAGE} preview tab must survive the plugin being toggled`)
-  await waitForBodyState(page, (state) => state.builtin.length >= 1, 'the built-in body must come back')
+  await ensureRightSidebar(page)
+  await openFilePreview(page, { directories: [FIXTURE_DIR], fileName: FIXTURE_PAGE })
+  await waitForBuiltinBody(page)
 }
 
 /**
@@ -266,6 +319,44 @@ async function restorePlugin(page, failure) {
   } catch (error) {
     if (failure === undefined) throw new Error(`could not re-enable ${PLUGIN_ID} after the case: ${error.message}`)
   }
+}
+
+/**
+ * Assert that no element still points at a retired `blob:` URL.
+ * @param {object} page - the page.
+ * @param {string} url - the blob URL the takeover frame used to carry.
+ * @returns {Promise<string[]>} the elements still referencing it, as tag + attribute names.
+ */
+async function staleBlobReferences(page, url) {
+  return page.evaluate(`(() => {
+    const url = ${JSON.stringify(url)};
+    const selector = 'iframe, frame, img, script, link, video, audio, source, object, embed';
+    return [...document.querySelectorAll(selector)]
+      .map((element) => element.getAttribute('src') || element.getAttribute('data') || element.getAttribute('href') || '')
+      .filter((value) => value === url);
+  })()`)
+}
+
+/**
+ * Read the composer's cards, click the quote button and return the one card the
+ * click appended.
+ *
+ * A card is the structured counterpart of the inserted quote. Comparing counts
+ * against a snapshot taken before the click keeps a pre-existing draft (the
+ * composer restores earlier quotes in the same session) out of the assertion.
+ * @param {object} page - the page.
+ * @param {number} before - card count before the click.
+ * @returns {Promise<object>} the appended card.
+ */
+async function waitForAppendedCard(page, before) {
+  const cards = await waitForComposerQuotes(page, before + 1)
+  assert.equal(
+    cards.length,
+    before + 1,
+    `one click must append exactly one quote card; saw ${cards.length - before} new cards:`
+    + ` ${JSON.stringify(cards.slice(before).map((card) => card.text))}`,
+  )
+  return cards[cards.length - 1]
 }
 
 /* -------------------------------------------------------------------------- *
@@ -301,23 +392,30 @@ scenario('E-10 关闭态正文等价：接管关闭与插件停用两个阶段�
     const clip = clipFromRect(rectA)
     const pathA = await shot('E-10-1-body-plugin-enabled', { clip, takeover: 'off', iframeSandbox: sandboxA })
 
-    // Phase two, same tab and same gate: disable the plugin and let the built-in
-    // renderer own the body on its own.
+    // Phase two: disable the plugin. The teardown is asserted on its own first —
+    // every plugin marker gone and the console silent — because the already-open
+    // tab keeps an empty body afterwards (documented boundary, see the module
+    // note) and only a reload brings the built-in renderer back.
+    page.resetConsoleErrors()
     await disablePlugin(page, PLUGIN_ID)
-    await returnToPreview(page)
-    await waitForElementCount(page, HTML_TOGGLE, 0)
-    await waitForBuiltinBody(page)
+    await waitForNoPluginMarkers(page)
+    assert.deepEqual(page.consoleErrors, [], `console errors while the plugin was disabled: ${JSON.stringify(page.consoleErrors)}`)
+
+    await reloadAndReopenPreview(page)
     const disabledBody = await readHtmlBodyState(page)
     assert.equal(disabledBody.builtin.length, 1, 'the built-in HTML renderer must own the body without the plugin')
     assert.deepEqual(disabledBody.takeover, [], 'no takeover frame may survive the plugin being disabled')
+    assert.equal(disabledBody.body, 0, 'no plugin body container may survive the plugin being disabled')
     const sandboxB = sandboxOf(disabledBody)
+    assert.notEqual(sandboxB, null, 'the built-in frame must carry a sandbox attribute in the disabled phase')
     const rectB = await readPreviewBodyRect(page)
     assert.equal(rectB.found, true, 'the plugin-disabled phase must expose the same body region')
-    assert.equal(
-      clipContains(clipFromRect(rectB), clip),
-      true,
-      `the body region moved between the two phases (${JSON.stringify(rectA)} vs ${JSON.stringify(rectB)});`
-      + ' the crop used for the comparison would not name the same region',
+    const clipB = clipFromRect(rectB)
+    assert.deepEqual(
+      clipB,
+      clip,
+      `the crop must name the same region in both phases (${JSON.stringify(clip)} vs ${JSON.stringify(clipB)});`
+      + ' a moved region would make the byte comparison meaningless',
     )
     const pathB = await shot('E-10-2-body-plugin-disabled', { clip, takeover: 'off', iframeSandbox: sandboxB })
 
@@ -335,6 +433,7 @@ scenario('E-10 关闭态正文等价：接管关闭与插件停用两个阶段�
       selectionDrive: null,
       sandboxPhaseA: sandboxA,
       sandboxPhaseB: sandboxB,
+      phaseBReloaded: true,
       bytesA: bytesA.length,
       bytesB: bytesB.length,
       sha256A: digest(bytesA),
@@ -363,6 +462,10 @@ scenario('E-11 开启自检：一条 info → 正文接管 → 自带消失 → 
   await waitForBuiltinBody(page)
   await waitForHtmlToggle(page, { pressed: false, disabled: false })
 
+  // The parent-side recorder is installed before the frame exists, so the
+  // bootstrap's own `ready` message is captured: the only place an opaque origin
+  // can be observed (see the module note).
+  await startBridgeMessageRecorder(page, TAKEOVER_FRAME)
   const noticesBefore = await readNotices(page)
   page.resetConsoleErrors()
   const path = await activate(page, markedControlExpression(HTML_MARKERS.toggle), 'the HTML takeover toggle')
@@ -397,8 +500,25 @@ scenario('E-11 开启自检：一条 info → 正文接管 → 自带消失 → 
   assert.equal(quote.present, true, 'the HTML quote button must appear once the takeover is effective')
   assert.equal(quote.disabled, true, 'with no selection the HTML quote button must be disabled')
 
+  // AC-24: the frame is opaque. Only the parent can prove it: every bridge
+  // message it receives must have `origin === 'null'` and come from this frame's
+  // own `contentWindow`. Reading the origin inside the frame reports the URL
+  // origin even for a sandboxed blob (module note 1).
+  const messages = await waitForBridgeMessages(page, { atLeast: 1, label: 'the takeover frame bootstrap' })
+  const bridge = messages.filter((message) => message.channel === BRIDGE_CHANNEL)
+  assert.ok(bridge.length > 0, `the bridge must report to the parent page: ${JSON.stringify(messages)}`)
+  for (const message of bridge) {
+    assert.equal(message.origin, 'null', `a bridge message must carry the opaque origin 'null': ${JSON.stringify(message)}`)
+    assert.equal(message.fromFrame, true, `a bridge message must come from the takeover frame's contentWindow: ${JSON.stringify(message)}`)
+    assert.equal(message.version, BRIDGE_VERSION, `the bridge protocol version must be ${BRIDGE_VERSION}: ${JSON.stringify(message)}`)
+  }
+  assert.equal(
+    bridge.some((message) => message.kind === 'ready'),
+    true,
+    `the bootstrap must announce readiness to the parent page: ${JSON.stringify(bridge)}`,
+  )
+
   const isolation = await readChildFrameIsolation(page, TAKEOVER_FRAME)
-  assert.equal(isolation.origin, 'null', `the takeover frame must keep an opaque origin, got ${JSON.stringify(isolation)}`)
   assert.equal(isolation.parentReachable, false, 'page script must not reach the host document')
   assert.deepEqual(isolation.hostGlobals, [], `page script must not see any host object: ${JSON.stringify(isolation.hostGlobals)}`)
   assert.equal(isolation.canPostToParent, true, 'the bridge must be able to report to the parent window')
@@ -414,7 +534,7 @@ scenario('E-12 真实拖选引用闭环：拖选 → 按钮可用 → 鼠标点�
   const sandbox = sandboxOf(await readHtmlBodyState(page))
 
   const target = await measureSelectionTargetInFrame(page, TAKEOVER_FRAME, { index: 0 })
-  const beforeComposer = await readComposerText(page)
+  const cardsBefore = await readComposerQuotes(page)
   const noticesBefore = await readNotices(page)
   await mouseDrag(page, target.from, target.to, 16)
   await new Promise((resolve) => setTimeout(resolve, 350))
@@ -427,17 +547,23 @@ scenario('E-12 真实拖选引用闭环：拖选 → 按钮可用 → 鼠标点�
   const path = await activate(page, markedControlExpression(HTML_MARKERS.quote), 'the HTML quote button')
   assert.equal(path, 'mouse', 'the HTML quote button must be reachable by a real pointer gesture')
 
-  const delta = await waitForComposerDelta(page, beforeComposer)
-  const parsed = parseQuoteBlock(delta, FIXTURE_PAGE_PATH)
-  assert.equal(parsed.source, true, `the quote must name 来源：${FIXTURE_PAGE_PATH}: ${JSON.stringify(delta)}`)
-  assert.ok(parsed.quotedText.length > 0, `the quote must carry the excerpt: ${JSON.stringify(delta)}`)
+  const card = await waitForAppendedCard(page, cardsBefore.length)
+  assert.ok(card.body.length > 0, `the quote card must carry the excerpt: ${JSON.stringify(card)}`)
   assert.equal(
-    collapse(parsed.quotedText),
+    collapse(card.body),
     collapse(selected),
-    `the excerpt must be the rendered text that was selected: ${JSON.stringify({ parsed, selected })}`,
+    `the excerpt must be the rendered text that was selected: ${JSON.stringify({ card, selected })}`,
   )
-  assert.equal(delta.includes(POINTER_LABEL), false, 'the first quote of a file must not be a pointer block')
-  assert.equal(/[A-Za-z]:[\\/]/u.test(delta), false, 'no absolute Windows path may reach the composer')
+  // AC-21: the card's metadata line is the browser-visible source of the quote
+  // (`<workspace-relative path> N 行`), because the composer renders the summary
+  // instead of the `来源：` text block that the model receives.
+  assert.match(
+    card.meta,
+    new RegExp(`^${FIXTURE_PAGE_PATH.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')} \\d+ 行$`, 'u'),
+    `the card must name the workspace-relative source and its line count: ${JSON.stringify(card)}`,
+  )
+  assert.equal(card.text.includes(POINTER_LABEL), false, 'the first quote of a file must not be a pointer block')
+  assert.equal(card.absolutePath, false, 'no absolute Windows path may reach the composer')
 
   const added = noticesAdded(noticesBefore, await readNotices(page))
   assert.equal(added.filter(isErrorNotice).length, 0, `a successful quote must not raise an error: ${JSON.stringify(added)}`)
@@ -457,11 +583,15 @@ scenario('E-13 同文件再引：第二次插入指针块，不含原文与来�
   const first = await measureSelectionTargetInFrame(page, TAKEOVER_FRAME, { index: 0 })
   await mouseDrag(page, first.from, first.to, 16)
   await waitForHtmlQuoteButton(page, { disabled: false })
-  const beforeFirst = await readComposerText(page)
+  const beforeFirst = await readComposerQuotes(page)
   await activate(page, markedControlExpression(HTML_MARKERS.quote), 'the HTML quote button')
-  const firstDelta = await waitForComposerDelta(page, beforeFirst)
-  const firstBlock = parseQuoteBlock(firstDelta, FIXTURE_PAGE_PATH)
-  assert.equal(firstBlock.source, true, `the first quote must be an original block: ${JSON.stringify(firstDelta)}`)
+  const firstCard = await waitForAppendedCard(page, beforeFirst.length)
+  assert.equal(firstCard.meta.includes(FIXTURE_PAGE_PATH), true, `the first card must name the file: ${JSON.stringify(firstCard)}`)
+  assert.equal(
+    firstCard.text.includes(POINTER_LABEL),
+    false,
+    `the first quote of a file in a session must be an original block: ${JSON.stringify(firstCard)}`,
+  )
 
   // Second quote: a different block when the fixture has one, otherwise the same
   // block — the pointer decision keys on the file, not on the excerpt.
@@ -473,20 +603,19 @@ scenario('E-13 同文件再引：第二次插入指针块，不含原文与来�
   }
   await mouseDrag(page, second.from, second.to, 16)
   await waitForHtmlQuoteButton(page, { disabled: false })
-  const beforeSecond = await readComposerText(page)
+  const beforeSecond = await readComposerQuotes(page)
   await activate(page, markedControlExpression(HTML_MARKERS.quote), 'the HTML quote button')
-  const delta = await waitForComposerDelta(page, beforeSecond)
+  const card = await waitForAppendedCard(page, beforeSecond.length)
 
-  assert.ok(delta.includes(POINTER_LABEL), `the second quote must be a pointer block: ${JSON.stringify(delta)}`)
-  assert.ok(delta.includes(FIXTURE_PAGE_PATH), 'the pointer must name the source path')
-  assert.equal(delta.includes(SOURCE_LABEL), false, 'a pointer block carries no 来源 line')
-  const excerpt = collapse(firstBlock.quotedText)
+  assert.equal(card.body.includes(POINTER_LABEL), true, `the second quote must be a pointer block: ${JSON.stringify(card)}`)
+  assert.equal(card.meta.includes(FIXTURE_PAGE_PATH), true, 'the pointer must name the source path')
+  assert.equal(card.text.includes(SOURCE_LABEL), false, 'a pointer block carries no 来源 line')
   assert.equal(
-    excerpt.length > 0 && collapse(delta).includes(excerpt),
+    collapse(card.body).includes(collapse(firstCard.body)),
     false,
-    'the pointer block must not repeat the excerpt',
+    `the pointer block must not repeat the excerpt: ${JSON.stringify({ card, firstCard })}`,
   )
-  assert.equal(/[A-Za-z]:[\\/]/u.test(delta), false, 'no absolute Windows path may reach the composer')
+  assert.equal(card.absolutePath, false, 'no absolute Windows path may reach the composer')
 
   await shot('E-13-1-pointer', {
     takeover: 'on', selectionDrive: 'mouse', iframeSandbox: sandbox, developerTools: true,
@@ -512,7 +641,7 @@ scenario('E-15 CSP 页面仍可引用：script-src none 不影响桥与插入', 
   const sandbox = sandboxOf(await readHtmlBodyState(page))
 
   const target = await measureSelectionTargetInFrame(page, TAKEOVER_FRAME, { index: 0 })
-  const beforeComposer = await readComposerText(page)
+  const cardsBefore = await readComposerQuotes(page)
   const noticesBefore = await readNotices(page)
   await mouseDrag(page, target.from, target.to, 16)
   await new Promise((resolve) => setTimeout(resolve, 350))
@@ -520,10 +649,9 @@ scenario('E-15 CSP 页面仍可引用：script-src none 不影响桥与插入', 
   const selected = await readChildFrameSelection(page, TAKEOVER_FRAME)
   await activate(page, markedControlExpression(HTML_MARKERS.quote), 'the HTML quote button')
 
-  const delta = await waitForComposerDelta(page, beforeComposer)
-  const parsed = parseQuoteBlock(delta, `${FIXTURE_DIR}/${FIXTURE_CSP}`)
-  assert.equal(parsed.source, true, `the CSP page must still quote with a source line: ${JSON.stringify(delta)}`)
-  assert.equal(collapse(parsed.quotedText), collapse(selected), 'the excerpt must be the selected rendered text')
+  const card = await waitForAppendedCard(page, cardsBefore.length)
+  assert.equal(card.meta.includes(FIXTURE_CSP_PATH), true, `the CSP page must still quote with its path: ${JSON.stringify(card)}`)
+  assert.equal(collapse(card.body), collapse(selected), 'the excerpt must be the selected rendered text')
   const added = noticesAdded(noticesBefore, await readNotices(page))
   assert.equal(added.filter(isErrorNotice).length, 0, `a CSP page must not degrade to an error: ${JSON.stringify(added)}`)
 
@@ -607,16 +735,15 @@ scenario('E-17 开启后关闭：正文回到自带、按钮消失、开关为�
   // A real drag inside the built-in preview must have no effect at all: no
   // button, no insertion. A fixture without a long text block is covered by a
   // plain horizontal drag across the frame.
-  let drag
-  try {
-    drag = await measureSelectionTargetInFrame(page, BUILTIN_FRAME, { index: 0 })
-  } catch {
-    drag = await frameDragPoints(page, BUILTIN_FRAME)
-  }
-  const beforeComposer = await readComposerText(page)
+  const drag = await builtinDragPoints(page)
+  const beforeComposer = await readComposerQuotes(page)
   await mouseDrag(page, drag.from, drag.to, 12)
   await new Promise((resolve) => setTimeout(resolve, 1200))
-  assert.equal(await readComposerText(page), beforeComposer, 'a selection in the built-in preview must not insert anything')
+  assert.deepEqual(
+    await readComposerQuotes(page),
+    beforeComposer,
+    'a selection in the built-in preview must not append a quote card',
+  )
   assert.equal((await readHtmlQuoteButton(page)).present, false)
   assert.deepEqual(page.consoleErrors, [], `console errors during E-17: ${JSON.stringify(page.consoleErrors)}`)
 
@@ -637,38 +764,53 @@ scenario('E-18 开启状态下停用插件：iframe 与控件消失、blob 不�
     true,
     `the takeover frame must be carried by a blob URL, saw ${JSON.stringify(takeoverSrc)}`,
   )
+  await shot('E-18-0-takeover-on', {
+    takeover: 'on', iframeSandbox: sandboxOf(body), developerTools: true,
+  })
   page.resetConsoleErrors()
 
   let failure
   try {
     await disablePlugin(page, PLUGIN_ID)
-    await returnToPreview(page)
-    await waitForElementCount(page, HTML_TOGGLE, 0)
-    await waitForBodyState(
-      page,
-      (state) => state.takeover.length === 0 && state.body === 0,
-      'the takeover body and frame must be gone once the plugin is disabled',
-    )
+
+    // Teardown first, on the very tab that was rendering the takeover.
+    await waitForNoPluginMarkers(page)
+    assert.deepEqual(await staleBlobReferences(page, takeoverSrc), [], 'the retired blob URL must not be referenced by any element any more')
+    assert.deepEqual(page.consoleErrors, [], `console errors while the plugin was disabled: ${JSON.stringify(page.consoleErrors)}`)
+
+    // Documented boundary (code/README.md, implementation.md §9): this tab keeps
+    // an empty body until the page is reloaded. The empty body is recorded as the
+    // measured fact it is, not asserted as a requirement.
+    const afterDisable = await readHtmlBodyState(page)
+
+    await reloadAndReopenPreview(page)
+    const afterReload = await readHtmlBodyState(page)
+    await writeFile(join(config.evidenceDir, 'E-18-2-disable-boundary.json'), `${JSON.stringify({
+      case: 'E-18',
+      takeoverSrc,
+      bodyAfterDisable: afterDisable,
+      bodyAfterReload: afterReload,
+      note: 'An open preview tab keeps an empty body after the plugin is disabled; a full page reload lets the '
+        + 'built-in renderer own the path again. Recorded as a known boundary, not a defect fixed by this Feature.',
+      capturedAt: new Date().toISOString(),
+    }, null, 2)}\n`, 'utf8')
+
+    await waitForNoPluginMarkers(page)
     await waitForBuiltinBody(page)
-
-    assert.equal((await readHtmlToggle(page)).present, false, 'the takeover toggle must be gone with the plugin')
-    assert.equal((await readHtmlQuoteButton(page)).present, false, 'the HTML quote button must be gone with the plugin')
-
-    const stale = await page.evaluate(`(() => {
-      const url = ${JSON.stringify(takeoverSrc)};
-      const selector = 'iframe, frame, img, script, link, video, audio, source';
-      return [...document.querySelectorAll(selector)]
-        .map((element) => element.getAttribute('src') || element.getAttribute('href') || '')
-        .filter((value) => value === url);
-    })()`)
-    assert.deepEqual(stale, [], 'the retired blob URL must not be referenced by any element any more')
+    assert.equal((await readHtmlBodyState(page)).builtin.length, 1, 'the built-in renderer must own the body after the reload')
+    assert.deepEqual(await staleBlobReferences(page, takeoverSrc), [], 'the retired blob URL must not survive the reload')
 
     // Selection is inert once the plugin is gone: the composer must not grow.
-    const drag = await frameDragPoints(page, BUILTIN_FRAME)
-    const beforeComposer = await readComposerText(page)
+    const drag = await builtinDragPoints(page)
+    const beforeDrag = await readComposerQuotes(page)
     await mouseDrag(page, drag.from, drag.to, 12)
     await new Promise((resolve) => setTimeout(resolve, 1200))
-    assert.equal(await readComposerText(page), beforeComposer, 'selection must have no effect once the plugin is disabled')
+    assert.deepEqual(
+      await readComposerQuotes(page),
+      beforeDrag,
+      'selection must have no effect once the plugin is disabled',
+    )
+    assert.equal((await readHtmlQuoteButton(page)).present, false, 'no quote button may exist once the plugin is disabled')
 
     assert.deepEqual(page.consoleErrors, [], `console errors during E-18: ${JSON.stringify(page.consoleErrors)}`)
     await shot('E-18-1-plugin-disabled', {

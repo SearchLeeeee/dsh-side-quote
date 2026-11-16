@@ -25,11 +25,11 @@
  * the closed state is the state this case is about.
  */
 import assert from 'node:assert/strict'
-import { after, test } from 'node:test'
+import { after, before, test } from 'node:test'
 import {
-  SKIP_NO_DRIVER, connectCdp, describeRun, openFilePreview, openPage, readE2eConfig, readHtmlToggle,
-  readQuoteButton, resolveCdpWebSocketUrl, resolveSkipReason, setHtmlTakeover, waitForHtmlToggle,
-  waitForQuoteButton,
+  SKIP_NO_DRIVER, connectCdp, describeRun, dismissOverlays, openFilePreview, openPage, readE2eConfig,
+  readHtmlToggle, readQuoteButton, resolveCdpWebSocketUrl, resolveSkipReason, setHtmlTakeover,
+  setPluginEnabled, waitForAppShell, waitForHtmlToggle, waitForQuoteButton,
 } from './cdp.mjs'
 
 const config = readE2eConfig()
@@ -45,6 +45,29 @@ if (skipReason === false) {
     skipReason = `${SKIP_NO_DRIVER}（CDP 端点不可达：${error.message}）`
   }
 }
+
+const PLUGIN_ID = 'dsh-side-quote'
+
+/**
+ * Enable the plugin before the case runs.
+ *
+ * Every preview assertion below needs the plugin active, while the full serial
+ * run ends with `quote-flow.test.mjs` E-08 disabling it on purpose (that case
+ * asserts the teardown). Making the precondition explicit here keeps the
+ * documented command repeatable instead of depending on the previous run's last
+ * case — it asserts nothing, so it cannot mask a failure.
+ */
+before(async () => {
+  if (skipReason !== false) return
+  const page = await openPage(browser, config.baseUrl)
+  try {
+    await waitForAppShell(page)
+    await dismissOverlays(page)
+    await setPluginEnabled(page, PLUGIN_ID, true)
+  } finally {
+    await page.close()
+  }
+})
 
 after(async () => {
   browser?.close()

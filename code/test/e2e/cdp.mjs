@@ -72,6 +72,23 @@ export const BUILTIN_HTML_FRAME_MARKER = 'data-html-preview'
 /** The persisted takeover preference (I001-F02 implementation.md §4). */
 export const HTML_TAKEOVER_STORAGE_KEY = 'dsh-side-quote:html-takeover'
 
+/** The fixed bridge protocol identity, read from the shipped bundle (implementation.md §5). */
+export const BRIDGE_CHANNEL = internals.HTML_BRIDGE_CHANNEL
+/** The fixed bridge protocol version. */
+export const BRIDGE_VERSION = internals.HTML_BRIDGE_VERSION
+
+/**
+ * The composer's structured quote card.
+ *
+ * A quote inserted through `insertQuote` is rendered as a decorator node, not as
+ * text: its excerpt is a child of `[data-quote-preview-text]`, so parsing the
+ * composer's Markdown-ish text can never recover the block. These two attributes
+ * are the platform's own contract for that node and are what the composer case
+ * reads (measured, `evidence/manual/probe-04-composer.json`).
+ */
+export const COMPOSER_QUOTE_MARKER = 'data-composer-quote'
+export const COMPOSER_QUOTE_TEXT_MARKER = 'data-quote-preview-text'
+
 /**
  * Platform settings-surface copy used to drive the script gate.
  *
@@ -85,6 +102,16 @@ export const SETTINGS_COPY = Object.freeze({
   general: ['通用设置', 'General'],
   developerTools: ['显示代码工作视图', 'Show coding view'],
   close: ['关闭', 'Close'],
+  /**
+   * The account menu that carries the settings entry in this build.
+   *
+   * Measured on DSH `0.2.2-rc.3`: the shell has no aria-labelled settings
+   * trigger at all (39 `aria-label` values, none of them `设置` / `Settings`).
+   * Settings is a `menuitem` inside the account menu whose text is
+   * `设置Ctrl+Alt+,`. Both routes are driven; the shell label is still tried
+   * first so a build that restores it keeps working.
+   */
+  account: ['账号菜单', 'Account menu', 'Account'],
 })
 
 /** Notice tiers as the composer renders them (F01: info is `status`, error is `alert`). */
@@ -742,6 +769,63 @@ export async function readComposerText(page) {
 }
 
 /**
+ * Read the composer's structured quote cards.
+ *
+ * Each card is one `<span data-composer-quote>` decorator node holding a
+ * `[data-quote-preview-text]` region with three children in document order: the
+ * visible label (`aria-hidden`), the metadata line (`<path> N 行` or
+ * `<path> 已引用过`) and the quoted body. The children are split by that order
+ * rather than by CSS-module class names, which change with every client build.
+ * @param {object} page - the page.
+ * @returns {Promise<{label: string, meta: string, body: string, text: string, absolutePath: boolean}[]>} the cards.
+ */
+export async function readComposerQuotes(page) {
+  return page.evaluate(`(() => {
+    const text = (node) => (node === null || node === undefined
+      ? ''
+      : (node.innerText || node.textContent || '').replace(/\\s+/gu, ' ').trim());
+    return [...document.querySelectorAll('[${COMPOSER_QUOTE_MARKER}]')].map((card) => {
+      const scope = card.querySelector('[${COMPOSER_QUOTE_TEXT_MARKER}]') || card;
+      const children = [...scope.children];
+      const labelNode = children.find((child) => child.getAttribute('aria-hidden') === 'true') || null;
+      const rest = children.filter((child) => child !== labelNode);
+      const meta = rest.length > 0 ? rest[0] : null;
+      const body = rest.slice(1);
+      const joined = text(card);
+      return {
+        label: text(labelNode),
+        meta: text(meta),
+        body: body.map(text).filter((value) => value !== '').join(' '),
+        text: joined,
+        absolutePath: /[A-Za-z]:[\\\\/]/u.test(joined),
+      };
+    });
+  })()`)
+}
+
+/**
+ * Wait until the composer shows at least `wanted` quote cards, then read them.
+ * @param {object} page - the page.
+ * @param {number} wanted - minimum card count.
+ * @param {{timeoutMs?: number}} [options] - bound.
+ * @returns {Promise<object[]>} the cards at acceptance.
+ */
+export async function waitForComposerQuotes(page, wanted, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 15000
+  const deadline = Date.now() + timeoutMs
+  let cards = []
+  for (;;) {
+    cards = await readComposerQuotes(page)
+    if (cards.length >= wanted) return cards
+    if (Date.now() > deadline) {
+      throw new Error(`the composer never reached ${wanted} quote card(s) within ${timeoutMs}ms;`
+        + ` it holds ${cards.length}: ${JSON.stringify(cards.map((card) => card.text))}`)
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  }
+}
+
+/**
  * Read the notice regions the composer renders (banners and inline notices).
  *
  * Notices are located by ARIA live-region semantics only, and each entry keeps
@@ -801,6 +885,34 @@ export async function activatePreviewTab(page, fileName) {
 }
 
 /**
+ * Expand the right sidebar when its tab strip is collapsed.
+ *
+ * Measured on DSH `0.2.2-rc.3`: a page reload after the plugin was disabled
+ * leaves the right column collapsed, so no visible tab exists even though the
+ * preview tabs may still be in the DOM. The toggle is the only public way in.
+ * Idempotent: a visible tab strip is left untouched.
+ * @param {object} page - the page.
+ * @param {{timeoutMs?: number}} [options] - bound.
+ * @returns {Promise<boolean>} whether the sidebar had to be expanded.
+ */
+export async function ensureRightSidebar(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 20000
+  const visibleTabs = `(() => [...document.querySelectorAll('[role="tab"]')]
+    .some((element) => element.getClientRects().length > 0))()`
+  if ((await page.evaluate(visibleTabs)) === true) return false
+  const toggle = `(() => {
+    const wanted = ['打开右侧边栏', 'Open right sidebar', 'Open sidebar'];
+    return [...document.querySelectorAll('[aria-label]')]
+      .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
+  })()`
+  if ((await page.evaluate(`(() => ${toggle} !== null)()`)) !== true) return false
+  await activate(page, toggle, 'the right sidebar toggle')
+  await page.waitFor(visibleTabs, { timeoutMs, label: 'the right sidebar tab strip' })
+  await new Promise((resolve) => setTimeout(resolve, 400))
+  return true
+}
+
+/**
  * Open a workspace file's document preview through the Files sidebar and leave
  * that preview active.
  *
@@ -815,22 +927,9 @@ export async function openFilePreview(page, options) {
   const fileName = options.fileName
   const directories = options.directories ?? []
   await waitForAppShell(page, timeoutMs)
-  // A fresh profile starts with the column collapsed, so no tab strip and no
-  // guide entry exist yet; its toggle is the only public way in.
-  if ((await page.evaluate('(() => document.querySelectorAll(\'[role="tab"]\').length > 0)()')) !== true) {
-    const openSidebar = `(() => {
-      const wanted = ['打开右侧边栏', 'Open right sidebar', 'Open sidebar'];
-      return [...document.querySelectorAll('[aria-label]')]
-        .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
-    })()`
-    if ((await page.evaluate(`(() => ${openSidebar} !== null)()`)) === true) {
-      await activate(page, openSidebar, 'the right sidebar toggle')
-      await page.waitFor('(() => document.querySelectorAll(\'[role="tab"]\').length > 0)()', {
-        timeoutMs,
-        label: 'the right sidebar tab strip',
-      })
-    }
-  }
+  // A fresh profile — or a page reload after the plugin was disabled — can leave
+  // the right column collapsed, so no tab strip and no guide entry exist yet.
+  await ensureRightSidebar(page, { timeoutMs })
   if (await activatePreviewTab(page, fileName)) {
     await waitForPreviewTab(page, fileName, timeoutMs)
     await new Promise((resolve) => setTimeout(resolve, 600))
@@ -1419,19 +1518,28 @@ export async function syntheticRangeInChildFrame(page, selector, phrase, options
 }
 
 /**
- * Read the child frame's isolation facts: its origin and whether it can reach
- * the host page. This is the "no host object" assertion, measured inside the
- * frame rather than inferred from the `sandbox` attribute alone.
+ * Read the child frame's host-reachability facts: whether it can reach the host
+ * page and whether any host object leaked into it. This is the "no host object"
+ * assertion, measured inside the frame rather than inferred from the `sandbox`
+ * attribute alone.
+ *
+ * The frame's *origin* is deliberately not read here. Measured on DSH
+ * `0.2.2-rc.3`: a DevTools isolated world created in a sandboxed `blob:` frame
+ * reports the URL origin (`http://127.0.0.1:<port>`) even though the frame is
+ * opaque, and the platform's own built-in HTML frame behaves identically. An
+ * opaque origin therefore has to be proven from the **parent** side, on the
+ * `message` events the bridge actually sends — see
+ * {@link startBridgeMessageRecorder} and {@link readBridgeMessages}.
  * @param {object} page - the page.
  * @param {string} selector - CSS selector of the iframe element.
  * @param {{timeoutMs?: number}} [options] - bound.
- * @returns {Promise<{origin: string, parentReachable: boolean, hostGlobals: string[], canPostToParent: boolean}>} the facts.
+ * @returns {Promise<{parentReachable: boolean, hostGlobals: string[], canPostToParent: boolean}>} the facts.
  */
 export async function readChildFrameIsolation(page, selector, options = {}) {
   const frame = await attachChildFrame(page, selector, { timeoutMs: options.timeoutMs ?? 15000 })
   try {
     return await evaluateWithRetry(frame, `(() => {
-      const facts = { origin: String(window.location.origin), parentReachable: false, hostGlobals: [], canPostToParent: false };
+      const facts = { parentReachable: false, hostGlobals: [], canPostToParent: false };
       try {
         void window.parent.document.documentElement;
         facts.parentReachable = true;
@@ -1450,6 +1558,88 @@ export async function readChildFrameIsolation(page, selector, options = {}) {
     })()`, options.timeoutMs ?? 15000)
   } finally {
     await frame.detach()
+  }
+}
+
+/**
+ * Start recording the `message` events the **parent page** receives, with the
+ * two facts only the parent can observe for a sandboxed frame:
+ * `event.origin` and whether `event.source` is the frame's own `contentWindow`.
+ *
+ * This is the only sound way to prove an opaque origin here (see
+ * {@link readChildFrameIsolation}). The recorder lives on the parent document, so
+ * it must be armed **before** the action that mounts the frame: that way the
+ * bootstrap's first `ready` message is captured too. Every message is kept; the
+ * caller filters on {@link BRIDGE_CHANNEL}.
+ * @param {object} page - the page.
+ * @param {string} frameSelector - CSS selector of the iframe the messages must come from.
+ * @returns {Promise<void>} resolves once the recorder is installed.
+ */
+export async function startBridgeMessageRecorder(page, frameSelector) {
+  await page.evaluate(`(() => {
+    const selector = ${JSON.stringify(frameSelector)};
+    if (Array.isArray(window.__sideQuoteBridgeMessages) !== true) window.__sideQuoteBridgeMessages = [];
+    if (window.__sideQuoteBridgeCaptureAttached === true) return true;
+    window.__sideQuoteBridgeCaptureAttached = true;
+    window.addEventListener('message', (event) => {
+      const frame = document.querySelector(selector);
+      const data = event.data;
+      const isObject = data !== null && typeof data === 'object' && Array.isArray(data) !== true;
+      window.__sideQuoteBridgeMessages.push({
+        origin: String(event.origin),
+        fromFrame: frame !== null && event.source === frame.contentWindow,
+        isObject,
+        channel: isObject && typeof data.channel === 'string' ? data.channel : null,
+        version: isObject ? data.version : null,
+        kind: isObject && typeof data.kind === 'string' ? data.kind : null,
+        textLength: isObject && typeof data.text === 'string' ? data.text.length : null,
+      });
+    }, true);
+    return true;
+  })()`)
+}
+
+/**
+ * Forget every message recorded so far, keeping the listener installed.
+ * @param {object} page - the page.
+ * @returns {Promise<void>} resolves after the buffer is cleared.
+ */
+export async function resetBridgeMessages(page) {
+  await page.evaluate(`(() => {
+    if (Array.isArray(window.__sideQuoteBridgeMessages)) window.__sideQuoteBridgeMessages.length = 0;
+    return true;
+  })()`)
+}
+
+/**
+ * Read the messages the parent page has received so far.
+ * @param {object} page - the page.
+ * @returns {Promise<{origin: string, fromFrame: boolean, isObject: boolean, channel: string|null, version: unknown, kind: string|null, textLength: number|null}[]>} the records.
+ */
+export async function readBridgeMessages(page) {
+  return page.evaluate('(() => (Array.isArray(window.__sideQuoteBridgeMessages) ? window.__sideQuoteBridgeMessages.slice() : []))()')
+}
+
+/**
+ * Wait until the parent page has received at least one message on the bridge
+ * channel, then return every recorded message.
+ * @param {object} page - the page.
+ * @param {{atLeast?: number, timeoutMs?: number, label?: string}} [options] - threshold and bound.
+ * @returns {Promise<object[]>} the records.
+ */
+export async function waitForBridgeMessages(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 20000
+  const atLeast = options.atLeast ?? 1
+  const deadline = Date.now() + timeoutMs
+  let messages = []
+  for (;;) {
+    messages = await readBridgeMessages(page)
+    if (messages.filter((message) => message.channel === BRIDGE_CHANNEL).length >= atLeast) return messages
+    if (Date.now() > deadline) {
+      throw new Error(`the parent page received no message on ${BRIDGE_CHANNEL}`
+        + ` within ${timeoutMs}ms for ${options.label ?? 'the takeover frame'}; saw ${JSON.stringify(messages)}`)
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100))
   }
 }
 
@@ -1754,31 +1944,98 @@ function developerToolsStateExpression() {
   })()`
 }
 
-/**
- * Open Settings → General and leave the dialog up.
- * @param {object} page - the page.
- * @param {number} timeoutMs - bound.
- */
-async function openSettingsGeneral(page, timeoutMs) {
-  if ((await page.evaluate(settingsDialogExpression())) === true) return
-  // The settings trigger lives in the app shell, which also has to shed the
-  // first-load notice before a real pointer can reach anything.
-  await waitForAppShell(page, timeoutMs)
-  const trigger = `(() => {
+/** @returns {string} expression resolving to a labelled shell settings trigger, or null. */
+function settingsTriggerExpression() {
+  return `(() => {
     const wanted = ${JSON.stringify(SETTINGS_COPY.trigger)};
     return [...document.querySelectorAll('[aria-label]')]
       .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
   })()`
-  await page.waitFor(`(() => ${trigger} !== null)()`, { timeoutMs, label: 'the settings trigger' })
-  await activate(page, trigger, 'the settings trigger')
-  await page.waitFor(settingsDialogExpression(), { timeoutMs, label: 'the settings dialog' })
-  const general = `(() => {
+}
+
+/** @returns {string} expression resolving to the account menu trigger, or null. */
+function accountMenuTriggerExpression() {
+  return `(() => {
+    const wanted = ${JSON.stringify(SETTINGS_COPY.account)};
+    return [...document.querySelectorAll('[aria-label]')]
+      .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
+  })()`
+}
+
+/**
+ * Expression resolving to the settings entry of an open account menu.
+ *
+ * The entry carries a keyboard hint in the same text node (`设置Ctrl+Alt+,`), so
+ * the label is matched as a prefix of the collapsed text rather than verbatim.
+ * @returns {string} the expression.
+ */
+function settingsMenuItemExpression() {
+  return `(() => {
+    const wanted = ${JSON.stringify(SETTINGS_COPY.trigger)};
+    return [...document.querySelectorAll('[role="menuitem"], [role="menu"] a, [role="menu"] button, [role="menu"] [role="button"]')]
+      .find((element) => {
+        if (element.getClientRects().length === 0) return false;
+        const text = (element.textContent || '').replace(/\\s+/gu, ' ').trim();
+        return text !== '' && wanted.some((label) => text.startsWith(label));
+      }) || null;
+  })()`
+}
+
+/** @returns {string} expression resolving to the General section button, or null. */
+function settingsGeneralExpression() {
+  return `(() => {
     const dialog = document.querySelector('[role="dialog"][aria-modal="true"]');
     if (!dialog) return null;
     const wanted = ${JSON.stringify(SETTINGS_COPY.general)};
     return [...dialog.querySelectorAll('button')]
       .find((element) => wanted.includes((element.textContent || '').replace(/\\s+/gu, ' ').trim())) || null;
   })()`
+}
+
+/**
+ * Open the Settings dialog and leave it up, navigating the way this build
+ * exposes it.
+ *
+ * Route 1 is a labelled trigger in the app shell. Route 2 — the only route DSH
+ * `0.2.2-rc.3` offers — opens the account menu (`账号菜单`) and activates the
+ * `设置` menuitem inside it. The route actually used is returned so a failure
+ * names the surface it was looking at.
+ * @param {object} page - the page.
+ * @param {{timeoutMs?: number}} [options] - bound.
+ * @returns {Promise<'already-open'|'shell-trigger'|'account-menu'>} the route used.
+ */
+export async function openSettingsDialog(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 30000
+  if ((await page.evaluate(settingsDialogExpression())) === true) return 'already-open'
+  // The settings surface lives in the app shell, which also has to shed the
+  // first-load notice before a real pointer can reach anything.
+  await waitForAppShell(page, timeoutMs)
+
+  const direct = settingsTriggerExpression()
+  if ((await page.evaluate(`(() => ${direct} !== null)()`)) === true) {
+    await activate(page, direct, 'the shell settings trigger')
+    await page.waitFor(settingsDialogExpression(), { timeoutMs, label: 'the settings dialog (shell trigger)' })
+    return 'shell-trigger'
+  }
+
+  const account = accountMenuTriggerExpression()
+  await page.waitFor(`(() => ${account} !== null)()`, { timeoutMs, label: 'the account menu trigger' })
+  await activate(page, account, 'the account menu trigger')
+  const item = settingsMenuItemExpression()
+  await page.waitFor(`(() => ${item} !== null)()`, { timeoutMs, label: 'the settings menu item in the account menu' })
+  await activate(page, item, 'the settings menu item')
+  await page.waitFor(settingsDialogExpression(), { timeoutMs, label: 'the settings dialog (account menu)' })
+  return 'account-menu'
+}
+
+/**
+ * Open Settings → General and leave the dialog up.
+ * @param {object} page - the page.
+ * @param {number} timeoutMs - bound.
+ */
+async function openSettingsGeneral(page, timeoutMs) {
+  await openSettingsDialog(page, { timeoutMs })
+  const general = settingsGeneralExpression()
   if ((await page.evaluate(`(() => ${general} !== null)()`)) === true) {
     await activate(page, general, 'the General settings section')
     await new Promise((resolve) => setTimeout(resolve, 300))
