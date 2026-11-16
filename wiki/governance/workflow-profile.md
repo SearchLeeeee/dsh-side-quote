@@ -57,9 +57,9 @@ owner 责任路径决定「谁有权改哪里」。路径重叠或职责空白�
 ## Commands
 
 - **静态检查** (`lint`): `node --check code/index.js`; `node --check code/client.js`
-- **单元/集成测试** (`test`): `node --test "code/test/**/*.test.mjs"`
-- **端到端测试** (`e2e`): `node --test "code/test/e2e/**/*.test.mjs"`
-- **验收验证** (`verify`): `node --check code/index.js`; `node --check code/client.js`; `node --test "code/test/**/*.test.mjs"`
+- **单元/集成测试** (`test`): `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
+- **端到端测试** (`e2e`): `node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"`
+- **验收验证** (`verify`): `node --check code/index.js`; `node --check code/client.js`; `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
 
 命令为空表示该项目尚未定义该命令。未定义的命令不得在对话中临时发明，也不得据此
 声称验证通过。

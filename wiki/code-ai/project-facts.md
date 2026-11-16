@@ -48,20 +48,24 @@ node --check code/client.js
 ### 单元/集成测试 (`test`)
 
 ```bash
-node --test "code/test/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 ```
 ### 端到端测试 (`e2e`)
 
 ```bash
-node --test "code/test/e2e/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"
 ```
 ### 验收验证 (`verify`)
 
 ```bash
 node --check code/index.js
 node --check code/client.js
-node --test "code/test/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 ```
+
+`--test-concurrency=1` 是端到端用例的硬要求：`E-08`、`E-10`、`E-16`、`E-18` 会改变实例全局
+状态（插件启停、接管开关、开发者工具闸门），并发执行会互相干扰并产生假失败。该约束登记在
+`.factory/factory.yaml` 的命令表中，由 `factory upgrade` 生成到 Workflow Profile。
 
 命令必须来自项目配置，能在干净环境中复现。不要在本页手写“大概能用”的命令；命令失效时先修生成源，再重新生成。
 

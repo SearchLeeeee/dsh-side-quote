@@ -44,14 +44,14 @@ commands:
   - node --check code/client.js
   typecheck: []
   test:
-  - node --test "code/test/**/*.test.mjs"
+  - node --test --test-concurrency=1 "code/test/**/*.test.mjs"
   e2e:
-  - node --test "code/test/e2e/**/*.test.mjs"
+  - node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"
   dev: []
   verify:
   - node --check code/index.js
   - node --check code/client.js
-  - node --test "code/test/**/*.test.mjs"
+  - node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 verification:
   baseline_evidence: wiki/validation/init-baseline.md
   evidence_root: wiki/feature-workspace
