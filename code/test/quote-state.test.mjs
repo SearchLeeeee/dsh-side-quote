@@ -16,6 +16,8 @@ const { internals } = await loadClientInternals()
 const BUTTON = { tag: 'button' }
 const ANCHOR = { tag: 'anchor' }
 const END_ANCHOR = { tag: 'end-anchor' }
+/** The iframe element a bridge capture reports as its source (I001-F02, C-11). */
+const WITNESS = { tag: 'witness-frame' }
 const PATH = 'notes/a.md'
 const SESSION = 'session-1'
 
@@ -71,14 +73,17 @@ function createFakeDocument() {
 
 /**
  * Build `createQuoteActions` dependencies over a controllable fake platform.
- * @param {object} [overrides] - state overrides applied after the defaults.
+ * @param {object} [overrides] - state overrides applied after the defaults;
+ *   `adapter` also replaces the registered adapter, which I001-F02 uses to drive
+ *   both ownership branches through the real core.
  * @returns {object} the harness.
  */
 function createActionHarness(overrides = {}) {
+  const { adapter, ...stateOverrides } = overrides
   const timers = createManualTimers()
   const history = internals.createQuoteHistory()
   const registry = internals.createAdapterRegistry()
-  registry.register(internals.createTextSelectionAdapter())
+  registry.register(adapter ?? internals.createTextSelectionAdapter())
   const notifications = []
   const inserted = []
   const state = {
@@ -96,7 +101,8 @@ function createActionHarness(overrides = {}) {
     focusedThrows: false,
     insertThrows: false,
     onInsert: undefined,
-    ...overrides,
+    witnessTarget: undefined,
+    ...stateOverrides,
   }
   const document = {
     getSelection() {
@@ -118,6 +124,10 @@ function createActionHarness(overrides = {}) {
       if (element === END_ANCHOR) {
         if (state.endThrows) throw new Error('sidebarRight: end occurrence is not synced')
         return state.endSelection
+      }
+      if (element === WITNESS) {
+        if (state.witnessTarget === 'throw') throw new Error('sidebarRight: witness tab is not synced')
+        return state.witnessTarget
       }
       return undefined
     },
@@ -465,7 +475,19 @@ test('U-15 清理：装 → 卸一次后监听、定时器、适配器、字典�
   )
   assert.equal(document.listenerCount(), 3)
   assert.equal(plugin.registry.list().length, 1, 'the built-in text adapter is registered')
-  assert.equal(fake.registrations.length, 1, 'the document actions slot is registered once')
+  // Two actions-slot contributions: the I001-F02 HTML takeover toggle and the F01
+  // text button. The toggle is the takeover's only entry point, so it exists even
+  // while the takeover itself is off (implementation.md §7).
+  assert.deepEqual(
+    fake.registrations.map((entry) => entry.options.id).sort(),
+    ['side-quote', internals.HTML_TOGGLE_SLOT_ID].sort(),
+    'the document actions slot carries one contribution per control',
+  )
+  assert.deepEqual(
+    [...new Set(fake.registrations.map((entry) => entry.options.name))],
+    ['sidebar.right.tab.document.actions'],
+    'every contribution targets the document actions slot',
+  )
   assert.equal(fake.localeRegistrations(), 1, 'the dictionaries are registered once')
   assert.equal(fake.mountedSubscribers.size, 1, 'the on-screen session is observed')
 
@@ -481,7 +503,7 @@ test('U-15 清理：装 → 卸一次后监听、定时器、适配器、字典�
   assert.equal(document.listenerCount(), 0, 'every listener is removed')
   assert.equal(fake.pendingTimers(), 0, 'no timer survives the teardown')
   assert.equal(plugin.registry.list().length, 0, 'the adapter registration is released')
-  assert.equal(fake.registrations.length, 0, 'the slot registration is released')
+  assert.equal(fake.registrations.length, 0, 'every slot registration is released')
   assert.equal(fake.localeRegistrations(), 0, 'the dictionaries are released')
   assert.equal(fake.mountedSubscribers.size, 0, 'the session subscription is released')
   assert.equal(plugin.history.size(), 0, 'the quoted-file record is cleared with the plugin')
@@ -626,4 +648,121 @@ test('格式白名单外的路径永远不可用', () => {
   assert.equal(harness.actions.stateOf(pdfButton).enabled, false)
   harness.actions.click(pdfButton)
   assert.equal(harness.inserted.length, 0)
+})
+
+/* -------------------------------------------------------------------------- *
+ * I001-F02 seam extension: U-21 (two ownership branches) and U-22 (target shape)
+ * -------------------------------------------------------------------------- */
+
+/** An adapter that answers from a bridge, i.e. it reports the iframe it read. */
+function createWitnessAdapter(witness) {
+  return {
+    id: 'html-bridge-probe',
+    match: (path) => path.endsWith('.html'),
+    readSelection: (target) => ({ text: 'rendered text', path: target.path, witness }),
+  }
+}
+
+test('U-21 接缝两条归属分支：有 witness 只比 occurrence，无 witness 仍走三元素校验', () => {
+  // (1) The bridge branch needs no parent-document selection at all: both boundary
+  //     elements are absent and the button is still usable. This is the whole point
+  //     of the seam extension (implementation.md §6.1–§6.2).
+  const bridged = createActionHarness({
+    adapter: createWitnessAdapter(WITNESS),
+    anchor: null,
+    endAnchor: null,
+    witnessTarget: { sessionId: SESSION, occurrence: { id: 'occurrence-1' } },
+  })
+  bridged.actions.attach(BUTTON, 'samples/page.html')
+  assert.equal(bridged.actions.stateOf(BUTTON).enabled, true, 'a witnessed capture must not require a parent selection')
+  bridged.actions.click(BUTTON)
+  assert.equal(bridged.inserted.length, 1)
+  assert.equal(bridged.inserted[0].text, 'rendered text\n\n来源：samples/page.html')
+
+  // (2) The branches are independent: a foreign parent-document selection does not
+  //     veto a capture whose witness is in the button's own tab occurrence.
+  const asymmetric = createActionHarness({
+    adapter: createWitnessAdapter(WITNESS),
+    selection: { sessionId: SESSION, occurrence: { id: 'occurrence-2' } },
+    endSelection: { sessionId: SESSION, occurrence: { id: 'occurrence-2' } },
+    witnessTarget: { sessionId: SESSION, occurrence: { id: 'occurrence-1' } },
+  })
+  asymmetric.actions.attach(BUTTON, 'samples/page.html')
+  assert.equal(asymmetric.actions.stateOf(BUTTON).enabled, true, 'the witness branch must not read the parent selection')
+
+  // (3) A witness in another tab occurrence greys the button and refuses the insert.
+  const foreign = createActionHarness({
+    adapter: createWitnessAdapter(WITNESS),
+    anchor: null,
+    endAnchor: null,
+    witnessTarget: { sessionId: SESSION, occurrence: { id: 'occurrence-2' } },
+  })
+  foreign.actions.attach(BUTTON, 'samples/page.html')
+  assert.equal(foreign.actions.stateOf(BUTTON).enabled, false, 'a foreign witness must grey the button')
+  foreign.actions.click(BUTTON)
+  assert.equal(foreign.inserted.length, 0)
+  assert.equal(foreign.history.size(), 0, 'a refused quote must not write the record')
+  assert.equal(foreign.notifications.length, 1, 'exactly one error notice')
+  assert.equal(foreign.notifications[0].level, 'error')
+
+  // (4) focusedTarget(witness) throwing is a refusal, never an escaping exception.
+  const throwing = createActionHarness({
+    adapter: createWitnessAdapter(WITNESS),
+    anchor: null,
+    endAnchor: null,
+    witnessTarget: 'throw',
+  })
+  throwing.actions.attach(BUTTON, 'samples/page.html')
+  assert.doesNotThrow(() => throwing.actions.stateOf(BUTTON))
+  assert.equal(throwing.actions.stateOf(BUTTON).enabled, false)
+  assert.doesNotThrow(() => throwing.actions.click(BUTTON))
+  assert.equal(throwing.inserted.length, 0)
+  assert.equal(throwing.notifications.length, 1)
+
+  // (5) A witness that resolves to no page target is a refusal too.
+  const unresolved = createActionHarness({
+    adapter: createWitnessAdapter(WITNESS),
+    anchor: null,
+    endAnchor: null,
+    witnessTarget: undefined,
+  })
+  unresolved.actions.attach(BUTTON, 'samples/page.html')
+  assert.equal(unresolved.actions.stateOf(BUTTON).enabled, false, 'an unresolvable witness must grey the button')
+  unresolved.actions.click(BUTTON)
+  assert.equal(unresolved.inserted.length, 0)
+  assert.equal(unresolved.notifications.length, 1)
+})
+
+test('U-22 target 形状：path/document/anchor/tab，occurrenceId 允许 undefined', () => {
+  const seen = []
+  const probe = {
+    id: 'shape-probe',
+    match: () => true,
+    readSelection: (target) => {
+      seen.push(target)
+      return { text: 'probe text', path: target.path }
+    },
+  }
+  const harness = createActionHarness({ adapter: probe, anchor: null, endAnchor: null })
+  // This capture carries no witness, so the state is greyed; the shape is still observed.
+  assert.equal(harness.actions.stateOf(BUTTON).enabled, false)
+  assert.equal(seen.length, 1)
+  const target = seen[0]
+  assert.equal(target.path, PATH)
+  assert.equal(target.anchor, null, 'the parent selection anchor may be absent for a bridge capture')
+  assert.equal(typeof target.document, 'object')
+  assert.deepEqual(target.tab, { sessionId: SESSION, occurrenceId: 'occurrence-1' })
+
+  harness.actions.click(BUTTON)
+  assert.equal(seen.length, 2, 'the click path reads the selection again')
+  assert.deepEqual(seen[1].tab, { sessionId: SESSION, occurrenceId: 'occurrence-1' })
+
+  // No own occurrence: the shape still carries the tab, with `occurrenceId` undefined.
+  const unsynced = createActionHarness({ adapter: probe, own: { sessionId: SESSION } })
+  unsynced.actions.stateOf(BUTTON)
+  assert.deepEqual(
+    seen[seen.length - 1].tab,
+    { sessionId: SESSION, occurrenceId: undefined },
+    'an unsynced tab occurrence must be reported as undefined, never invented',
+  )
 })

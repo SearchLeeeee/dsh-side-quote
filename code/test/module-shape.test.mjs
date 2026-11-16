@@ -21,8 +21,23 @@ const CLIENT_PACKAGE_DEPENDENCIES = [
   '@deepseek-ai/dsh-client-ui-conversation',
 ]
 
-/** Cordis services the bundle's `inject` must declare. */
-const CLIENT_SERVICES = ['slots', 'sidebarRight', 'sessions', 'conversation', 'locale', 'timer']
+/**
+ * Cordis services the bundle's `inject` must declare.
+ *
+ * I001-F02 adds two: `documentPreviews` (the definition/bodies registry the HTML
+ * takeover registers into) and `configForms` (the script gate snapshot). Cordis
+ * has no optional injection, so both are hard requirements of this bundle.
+ */
+const CLIENT_SERVICES = [
+  'slots',
+  'sidebarRight',
+  'sessions',
+  'conversation',
+  'locale',
+  'timer',
+  'documentPreviews',
+  'configForms',
+]
 
 test('manifest declares a dsh bundle patch and a web client half', () => {
   assert.equal(manifest.name, 'dsh-side-quote')

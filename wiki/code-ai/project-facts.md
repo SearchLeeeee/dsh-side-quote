@@ -71,17 +71,29 @@ node --test "code/test/**/*.test.mjs"
 | --- | --- | --- | --- |
 | 单元层 | 引用内容模板与保真、截断、路径相对化、格式白名单、敏感名单、已引用记录、防抖与点击去重、清理、适配器接缝、`summary` 契约、中英字典 | `node --test "code/test/**/*.test.mjs"` | 纯逻辑正确性；无需浏览器与 DSH 实例 |
 | 端到端层 | 真实 DSH 侧栏里的划词 → 按钮可用性 → 插入 → 通知，以及各格式零影响 | `node --test "code/test/e2e/**/*.test.mjs"`（需外部实例与浏览器驱动） | 浏览器主链路 |
-| 人工回归层 | 非文本格式（pdf / png / xlsx / docx / html）的预览表现 | 人眼逐格式确认 + 截图 | 未破坏既有预览 |
+| HTML 接管层（单元） | 接管开关的持久化 fail-closed、闸门状态机、iframe 桥报文校验与 4000ms 就绪超时、按 iframe 隔离与卸载清理、`sandbox` 只含 `allow-scripts` 的结构断言、中英字典新增键 | `node --test "code/test/**/*.test.mjs"` | 接管逻辑与状态逻辑；无需浏览器 |
+| HTML 接管层（端到端） | 关闭态正文与插件停用逐字节一致、开启自检与通知预算、真实拖选引用、CSP 页面、同文件指针块、闸门关闭、开启后关闭、停用清理 | `node --test "code/test/e2e/html-takeover.test.mjs"`（需外部实例与浏览器驱动） | 接管后的浏览器主链路与安全性可观察面 |
+| 人工回归层 | 非文本格式（pdf / png / xlsx / docx）与 `.html` 的预览表现：自带渲染 vs 接管渲染的可读性、可选择性、外部资源未加载 | 人眼逐格式确认 + 截图 | 未破坏既有预览，接管后仍可用 |
+
+HTML 接管层的端到端用例要驱动不透明 origin 的 iframe：选区由 CDP
+`Input.dispatchMouseEvent` 的真实按压 → 多次移动 → 释放驱动，证据记为
+`selectionDrive: 'mouse'`；子 frame 只用于测量文字几何与读回选区（`Target.attachToTarget`
+或 `Page.createIsolatedWorld` 两条路径）。若某次运行改用 `Target.setAutoAttach` 后在子 frame
+合成 `Range`，证据必须记为 `selectionDrive: 'synthetic-range'`，不得当作物理拖选；截图
+sidecar 同时记录接管状态与观察到的 iframe `sandbox` 属性。
 
 端到端层通过环境变量连接已存在的外部实例，脚本自身不启动服务、不自带浏览器驱动、不新增
 运行时依赖：
 
 - `SIDE_QUOTE_E2E_BASE_URL`：实例地址（含 token），默认 `http://127.0.0.1:3181`；
 - `SIDE_QUOTE_E2E_CDP`：浏览器 CDP 端点，接受 `ws://…` 或 `http://host:port`；
-- `SIDE_QUOTE_E2E_EVIDENCE_DIR`：可选，截图写入目录。
+- `SIDE_QUOTE_E2E_EVIDENCE_DIR`：必需，截图与 sidecar 的写入目录；
+- `SIDE_QUOTE_E2E_PROFILE`：必需，实例 profile 名，写入 sidecar 作为隔离身份；
+- `SIDE_QUOTE_E2E_ALLOW_LIVE`：显式放行对 `3081` 运行，只在明确授权时设为 `1`。
 
-变量缺失时用例以 `skip` 结束，理由写明「未提供 DSH 实例」或「未提供浏览器驱动」。
-**`skip` 不等于通过**：验收记录必须把它写成「未执行」。
+变量缺失时用例以 `skip` 结束，理由写明「未提供 DSH 实例」「未提供浏览器驱动」
+「未提供证据目录」或「未提供实例 profile」。**`skip` 不等于通过**：验收记录必须把它写成
+「未执行」。
 
 任何「已验证」结论都不得只引用静态检查或单元层的通过结果；浏览器行为必须有端到端证据。
 证据与判定责任见 `wiki/validation/`。

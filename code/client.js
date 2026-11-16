@@ -59,6 +59,45 @@ window.__ModuleLoader__.load({
     ]
 
     /* ------------------------------------------------------------------ *
+     * HTML takeover constants (I001-F02 core/implementation.md §3–§7)
+     * ------------------------------------------------------------------ */
+
+    /** Persistent user choice. Only `'on'` means enabled; anything else is closed. */
+    const HTML_TAKEOVER_STORAGE_KEY = 'dsh-side-quote:html-takeover'
+    const HTML_TAKEOVER_ON = 'on'
+    const HTML_TAKEOVER_OFF = 'off'
+    /** Definition identity; the same value keys the `sidebar.right.tab.document` slot. */
+    const HTML_BODY_ID = 'dsh-side-quote/html'
+    /** Suffixes the takeover claims. The text whitelist above must never contain them. */
+    const HTML_EXTENSIONS = ['html', 'htm']
+    /** Identity of the one adapter this Feature adds. */
+    const HTML_ADAPTER_ID = 'html'
+    /** Fixed bridge protocol; the parent accepts nothing outside it. */
+    const HTML_BRIDGE_CHANNEL = 'dsh-side-quote/html-bridge'
+    const HTML_BRIDGE_VERSION = 1
+    /** Transport guard only: the content contract keeps at most 8000 characters. */
+    const HTML_BRIDGE_MAX_TEXT = 65536
+    /** A frame silent for this long counts as unusable; a later `ready` recovers it. */
+    const HTML_BRIDGE_READY_TIMEOUT_MS = 4000
+    /** Header contribution ids; both must stay unique inside the actions slot. */
+    const HTML_TOGGLE_SLOT_ID = 'side-quote-html-toggle'
+    const HTML_QUOTE_SLOT_ID = 'side-quote-html-quote'
+
+    /**
+     * Decide whether a preview path is an HTML document.
+     *
+     * The takeover definition, its header toggle, its quote button and its
+     * adapter all read this one predicate, so the format is decided exactly once
+     * (implementation.md §7, §10: a second equivalent decision would be a defect).
+     * @param {unknown} path - any path form; only the last segment is matched.
+     * @returns {boolean} whether the path ends in `.html` or `.htm`, case-insensitively.
+     */
+    function matchesHtmlPreviewPath(path) {
+      const name = fileNameOf(path).toLowerCase()
+      return HTML_EXTENSIONS.some((extension) => name.endsWith(`.${extension}`))
+    }
+
+    /* ------------------------------------------------------------------ *
      * Path helpers (quote-content-contract.md §5)
      * ------------------------------------------------------------------ */
 
@@ -503,27 +542,105 @@ window.__ModuleLoader__.load({
       }
 
       /**
-       * Resolve the elements that must all share one tab occurrence: the button,
-       * the selection's start side and the selection's end side. A selection that
-       * spans two previews is refused rather than attributed to one of them.
-       * Throws only from the platform's `focusedTarget`; callers turn that into
-       * "greyed" or one error.
+       * Resolve the tab page the button itself sits in.
+       *
+       * Ownership always starts here. The selection side is resolved per branch
+       * below, because a bridge capture has no parent-document selection at all
+       * (implementation.md §6.2).
+       * @param {Element} element - the rendered button.
+       * @param {string} sessionId - the on-screen session.
+       * @returns {object|null} the button's page target, or null.
        */
-      function resolveTargets(element, sessionId) {
+      function resolveOwn(element, sessionId) {
         const own = deps.focusedTarget(element)
         if (own === undefined || own === null || own.sessionId !== sessionId) return null
-        const startElement = deps.selectionAnchor()
-        if (startElement === null || startElement === undefined) return null
+        return own
+      }
+
+      /**
+       * Describe the button's own tab page for `readSelection`, so an adapter can
+       * decide without touching platform state (implementation.md §6.1).
+       * @param {object} own - the button's page target.
+       * @returns {{sessionId: string, occurrenceId: string|undefined}} the tab shape.
+       */
+      function tabOf(own) {
+        return {
+          sessionId: own.sessionId,
+          occurrenceId: own.occurrence === undefined || own.occurrence === null ? undefined : own.occurrence.id,
+        }
+      }
+
+      /**
+       * Resolve the parent-document selection anchor, tolerating a document whose
+       * selection cannot be read at all.
+       * @returns {Element|null} the anchor element, or null.
+       */
+      function readAnchor() {
+        try {
+          const element = deps.selectionAnchor()
+          return element === undefined ? null : element
+        } catch (_error) {
+          return null
+        }
+      }
+
+      /**
+       * Witness-less ownership branch: the F01 three-element check, unchanged.
+       *
+       * A selection that spans two tab occurrences is one valid DOM selection, so
+       * both its start and its end must belong to the button's own tab.
+       * @param {object} own - the button's page target.
+       * @param {string} sessionId - the on-screen session.
+       * @param {Element|null} anchorElement - the selection's start element.
+       * @returns {boolean} whether the parent selection belongs to this button.
+       */
+      function parentSelectionOwned(own, sessionId, anchorElement) {
+        if (anchorElement === null || anchorElement === undefined) return false
         const endElement = deps.selectionEnd()
-        if (endElement === null || endElement === undefined) return null
-        const start = deps.focusedTarget(startElement)
-        if (start === undefined || start === null || start.sessionId !== sessionId) return null
+        if (endElement === null || endElement === undefined) return false
+        const start = deps.focusedTarget(anchorElement)
+        if (start === undefined || start === null || start.sessionId !== sessionId) return false
         const end = deps.focusedTarget(endElement)
-        if (end === undefined || end === null || end.sessionId !== sessionId) return null
-        if (own.occurrence === undefined || start.occurrence === undefined || end.occurrence === undefined) return null
-        if (own.occurrence.id !== start.occurrence.id) return null
-        if (own.occurrence.id !== end.occurrence.id) return null
-        return { anchor: startElement }
+        if (end === undefined || end === null || end.sessionId !== sessionId) return false
+        if (own.occurrence === undefined || start.occurrence === undefined || end.occurrence === undefined) return false
+        if (own.occurrence.id !== start.occurrence.id) return false
+        if (own.occurrence.id !== end.occurrence.id) return false
+        return true
+      }
+
+      /**
+       * Witness ownership branch: the capture names the element it was read from, so
+       * only that element's tab occurrence has to equal the button's own.
+       * @param {Element} witness - the element the adapter read from.
+       * @param {object} own - the button's page target.
+       * @param {string} sessionId - the on-screen session.
+       * @returns {boolean} whether the witness belongs to this button.
+       */
+      function witnessOwned(witness, own, sessionId) {
+        const seen = deps.focusedTarget(witness)
+        if (seen === undefined || seen === null || seen.sessionId !== sessionId) return false
+        if (own.occurrence === undefined || own.occurrence === null) return false
+        if (seen.occurrence === undefined || seen.occurrence === null) return false
+        return own.occurrence.id === seen.occurrence.id
+      }
+
+      /**
+       * Decide ownership from the capture itself.
+       *
+       * The two branches are the seam's only difference: a capture that reports a
+       * witness is compared by occurrence, one that does not keeps the F01 check.
+       * The core never inspects the path or the format (implementation.md §6.2).
+       * @param {object} capture - the adapter's answer.
+       * @param {object} own - the button's page target.
+       * @param {string} sessionId - the on-screen session.
+       * @param {Element|null} anchorElement - the parent selection's start element.
+       * @returns {boolean} whether this capture may be attributed to this button.
+       */
+      function captureOwned(capture, own, sessionId, anchorElement) {
+        if (capture.witness !== undefined && capture.witness !== null) {
+          return witnessOwned(capture.witness, own, sessionId)
+        }
+        return parentSelectionOwned(own, sessionId, anchorElement)
       }
 
       function stateOf(element) {
@@ -537,13 +654,20 @@ window.__ModuleLoader__.load({
           // session-bound notice channel, so the state is not actionable at all.
           const scope = deps.sessionScope(sessionId)
           if (scope === undefined || scope === null) return { enabled: false }
-          const targets = resolveTargets(element, sessionId)
-          if (targets === null) return { enabled: false }
+          const own = resolveOwn(element, sessionId)
+          if (own === null) return { enabled: false }
           const adapter = deps.registry.match(entry.path)
           if (adapter === undefined) return { enabled: false }
-          const capture = adapter.readSelection({ path: entry.path, document: deps.document(), anchor: targets.anchor })
+          const anchorElement = readAnchor()
+          const capture = adapter.readSelection({
+            path: entry.path,
+            document: deps.document(),
+            anchor: anchorElement,
+            tab: tabOf(own),
+          })
           if (capture === null || capture === undefined) return { enabled: false }
           if (typeof capture.text !== 'string' || capture.text.trim() === '') return { enabled: false }
+          if (!captureOwned(capture, own, sessionId, anchorElement)) return { enabled: false }
           return { enabled: true }
         } catch (_error) {
           // An unsynced tab or a throwing adapter greys the button; nothing escapes into render.
@@ -562,13 +686,13 @@ window.__ModuleLoader__.load({
             say('error', 'error.noSession')
             return
           }
-          let targets = null
+          let own = null
           try {
-            targets = resolveTargets(element, sessionId)
+            own = resolveOwn(element, sessionId)
           } catch (_error) {
-            targets = null
+            own = null
           }
-          if (targets === null) {
+          if (own === null) {
             say('error', 'error.ownership')
             return
           }
@@ -577,15 +701,31 @@ window.__ModuleLoader__.load({
             say('error', 'error.noSelection')
             return
           }
+          const anchorElement = readAnchor()
           let capture
           try {
-            capture = adapter.readSelection({ path: entry.path, document: deps.document(), anchor: targets.anchor })
+            capture = adapter.readSelection({
+              path: entry.path,
+              document: deps.document(),
+              anchor: anchorElement,
+              tab: tabOf(own),
+            })
           } catch (_error) {
             say('error', 'error.readFailed')
             return
           }
           if (capture === null || capture === undefined || typeof capture.text !== 'string' || capture.text.trim() === '') {
             say('error', 'error.noSelection')
+            return
+          }
+          let owned = false
+          try {
+            owned = captureOwned(capture, own, sessionId, anchorElement)
+          } catch (_error) {
+            owned = false
+          }
+          if (!owned) {
+            say('error', 'error.ownership')
             return
           }
           const scope = deps.sessionScope(sessionId)
@@ -676,6 +816,840 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------------ *
+     * HTML takeover bridge: bootstrap, frame state, parent-side validation
+     * (I001-F02 core/implementation.md §5)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Decode complete HTML bytes strictly. Invalid UTF-8 is a render failure, never
+     * an empty page (implementation.md §5.1).
+     * @param {unknown} bytes - complete page bytes.
+     * @returns {string} the decoded page.
+     */
+    function decodeHtmlBytes(bytes) {
+      return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    }
+
+    /**
+     * Encode the page as a JSON string literal for the bootstrap script.
+     *
+     * JSON keeps the page inert; every `</` becomes the equivalent `<\/` so the
+     * payload can never close the outer script, and no string concatenation ever
+     * places page text into the script (implementation.md §5.2).
+     * @param {unknown} pageHtml - the decoded page.
+     * @returns {string} a script-safe JSON literal.
+     */
+    function encodeHtmlPayload(pageHtml) {
+      const text = String(pageHtml === null || pageHtml === undefined ? '' : pageHtml)
+      return JSON.stringify(text).replace(/<\//gu, '<\\/')
+    }
+
+    /**
+     * Build the outer iframe document: a fixed bootstrap that installs the bridge
+     * before the page and then writes the page into the same document.
+     *
+     * The page's own CSP `script-src` therefore cannot disable the bridge, because
+     * no script is injected into the page (implementation.md §5.2, C-09).
+     * @param {unknown} pageHtml - the decoded page.
+     * @returns {string} the bootstrap document.
+     */
+    function createHtmlBootstrap(pageHtml) {
+      const payload = encodeHtmlPayload(pageHtml)
+      return `<!doctype html><meta charset="utf-8"><script>(()=>{
+const channel="${HTML_BRIDGE_CHANNEL}",version=${HTML_BRIDGE_VERSION}
+const send=(data)=>{try{window.parent.postMessage(data,"*")}catch(_error){}}
+const snapshot=Document.prototype.getSelection
+let broken=false
+const fail=()=>{if(broken)return;broken=true;send({channel:channel,version:version,kind:"error"})}
+const report=()=>{
+if(broken)return
+try{
+const selection=snapshot.call(document)
+const text=selection===null||selection===undefined?"":String(selection.toString())
+if(text.trim()!=="")send({channel:channel,version:version,kind:"selection",text:text})
+}catch(_error){fail()}
+}
+try{
+window.addEventListener("selectionchange",report,true)
+window.addEventListener("mouseup",report,true)
+window.addEventListener("keyup",report,true)
+send({channel:channel,version:version,kind:"ready"})
+const page=${payload}
+document.open()
+document.write(page)
+document.close()
+}catch(_error){fail()}
+})()</script>`
+    }
+
+    /**
+     * Create the parent half of the bridge: one entry per mounted iframe, strict
+     * message validation, and the ready deadline.
+     *
+     * State is keyed by the iframe element, never by path: one file may be open in
+     * two panes at once (implementation.md §5.4).
+     * @param {{window: object, setTimer: (callback: () => void, ms: number) => (() => void), readyTimeoutMs?: number, onFailure?: (reason: string, frame: object) => void, onActivity?: () => void}} deps
+     *   the message target, the disposable timer, the deadline, the failure sink and
+     *   the accepted-message sink the button state hangs off.
+     * @returns {object} the bridge.
+     */
+    function createHtmlBridge(deps) {
+      const entries = new Map()
+      const timeoutMs = deps.readyTimeoutMs === undefined ? HTML_BRIDGE_READY_TIMEOUT_MS : deps.readyTimeoutMs
+      const onFailure = typeof deps.onFailure === 'function' ? deps.onFailure : () => {}
+      const onActivity = typeof deps.onActivity === 'function' ? deps.onActivity : () => {}
+      let disposed = false
+
+      /** @returns {object|null} the frame's browsing context, or null. */
+      function sourceOf(frame) {
+        try {
+          const source = frame.contentWindow
+          return source === undefined ? null : source
+        } catch (_error) {
+          return null
+        }
+      }
+
+      /**
+       * Validate one message against one frame. All four rules are required; a
+       * rejected message is noise, never an error and never a cleared selection.
+       * @param {object} event - the message event.
+       * @param {object} frame - the iframe it claims to come from.
+       * @returns {boolean} whether the message may be applied.
+       */
+      function accepts(event, frame) {
+        if (event === null || event === undefined) return false
+        if (event.origin !== 'null') return false
+        const source = sourceOf(frame)
+        if (source === null || event.source !== source) return false
+        const data = event.data
+        if (data === null || typeof data !== 'object' || Array.isArray(data) === true) return false
+        if (data.channel !== HTML_BRIDGE_CHANNEL || data.version !== HTML_BRIDGE_VERSION) return false
+        if (data.kind === 'selection') {
+          if (typeof data.text !== 'string') return false
+          return data.text.length <= HTML_BRIDGE_MAX_TEXT
+        }
+        return data.kind === 'ready' || data.kind === 'error'
+      }
+
+      /**
+       * Apply one accepted message to its frame's entry, then let the owner
+       * re-finalize anything that depends on the cached state.
+       * @param {object} entry - the frame entry.
+       * @param {object} frame - the iframe element.
+       * @param {object} data - the validated payload.
+       */
+      function apply(entry, frame, data) {
+        if (data.kind === 'ready') {
+          entry.state.ready = true
+          entry.state.failed = false
+          entry.stop()
+        } else if (data.kind === 'error') {
+          entry.state.failed = true
+          onFailure('error', frame)
+        } else {
+          entry.state.text = data.text
+        }
+        // The parent document never sees the iframe's selection events, so this is
+        // the only signal that the button state changed (implementation.md §4, §5.4).
+        try {
+          onActivity()
+        } catch (_error) {
+          // Re-finalizing is best effort; the cached state is already correct.
+        }
+      }
+
+      /** @param {object} event - one window `message` event. */
+      function receive(event) {
+        if (disposed) return
+        // Snapshot the entries: a subscriber may mount or unmount a frame.
+        for (const [frame, entry] of [...entries]) {
+          if (!accepts(event, frame)) continue
+          apply(entry, frame, event.data)
+        }
+      }
+
+      /**
+       * Track one mounted iframe and arm its ready deadline.
+       * @param {object} frame - the iframe element.
+       * @returns {() => void} an idempotent detach that deletes the entry.
+       */
+      function attach(frame) {
+        if (disposed || frame === null || frame === undefined) return () => {}
+        if (entries.has(frame)) return () => {}
+        const entry = {
+          state: { ready: false, text: '', failed: false, unmounted: false },
+          timer: null,
+          /** Cancel the deadline; a settled frame needs none. */
+          stop() {
+            if (entry.timer === null) return
+            const cancel = entry.timer
+            entry.timer = null
+            cancel()
+          },
+        }
+        entries.set(frame, entry)
+        try {
+          entry.timer = deps.setTimer(() => {
+            entry.timer = null
+            if (disposed || entry.state.unmounted || entry.state.ready) return
+            onFailure('timeout', frame)
+          }, timeoutMs)
+        } catch (_error) {
+          // Without a timer the frame simply never reaches the deadline.
+          entry.timer = null
+        }
+        return () => {
+          if (entry.state.unmounted) return
+          entry.state.unmounted = true
+          entry.stop()
+          entries.delete(frame)
+        }
+      }
+
+      /**
+       * @param {object} frame - an iframe element.
+       * @returns {{ready: boolean, text: string, failed: boolean, unmounted: boolean}|undefined} the frame state.
+       */
+      function stateOf(frame) {
+        const entry = entries.get(frame)
+        if (entry === undefined) return undefined
+        const { ready, text, failed, unmounted } = entry.state
+        return { ready, text, failed, unmounted }
+      }
+
+      /**
+       * @param {object} frame - an iframe element.
+       * @returns {boolean} whether the frame reported ready and is not failed.
+       */
+      function isUsable(frame) {
+        const entry = entries.get(frame)
+        if (entry === undefined) return false
+        const { ready, failed, unmounted } = entry.state
+        return ready && !failed && !unmounted
+      }
+
+      /**
+       * @param {object} frame - an iframe element.
+       * @returns {string} the latest reported selection, or an empty string.
+       */
+      function textOf(frame) {
+        if (!isUsable(frame)) return ''
+        const entry = entries.get(frame)
+        return typeof entry.state.text === 'string' ? entry.state.text : ''
+      }
+
+      /** @returns {object[]} the mounted iframes, in mount order. */
+      function listFrames() {
+        return [...entries.keys()]
+      }
+
+      /** Drop every entry and every pending deadline; the listener stays. */
+      function clear() {
+        for (const entry of entries.values()) entry.stop()
+        entries.clear()
+      }
+
+      /** Remove the message listener and every entry. */
+      function dispose() {
+        if (disposed) return
+        disposed = true
+        clear()
+        try {
+          if (deps.window !== null && deps.window !== undefined && typeof deps.window.removeEventListener === 'function') {
+            deps.window.removeEventListener('message', receive)
+          }
+        } catch (_error) {
+          // A window that refuses the removal has no listener left to misuse.
+        }
+      }
+
+      try {
+        if (deps.window !== null && deps.window !== undefined && typeof deps.window.addEventListener === 'function') {
+          deps.window.addEventListener('message', receive)
+        }
+      } catch (_error) {
+        // Without a message channel the bridge simply never becomes ready.
+      }
+
+      return { attach, stateOf, isUsable, textOf, frames: listFrames, dispose }
+    }
+
+    /* ------------------------------------------------------------------ *
+     * HTML adapter: which frame answered, never which format it is
+     * (I001-F02 core/implementation.md §6.2)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * The HTML adapter reads the cached bridge selection of the frame that belongs
+     * to the button's own tab page.
+     *
+     * It only narrows candidates; the core's witness branch still decides
+     * ownership, so an ambiguous answer is `null` rather than a guess
+     * (implementation.md §6.2, plan §2.2 item 9).
+     * @param {{bridge: object|null, focusedTarget: (element: object) => object}} deps - the bridge and the ownership reader.
+     * @returns {object} the adapter.
+     */
+    function createHtmlQuoteAdapter(deps) {
+      const bridge = deps.bridge
+      const focusedTarget = deps.focusedTarget
+
+      /** @returns {{text: string, path: string, witness: object}} one capture. */
+      function captureOf(frame, path) {
+        return { text: bridge.textOf(frame), path, witness: frame }
+      }
+
+      /** @returns {object[]} the usable frames that hold a non-blank selection. */
+      function candidates() {
+        if (bridge === null || bridge === undefined) return []
+        const usable = []
+        for (const frame of bridge.frames()) {
+          if (bridge.isUsable(frame) !== true) continue
+          const text = bridge.textOf(frame)
+          if (typeof text !== 'string' || text.trim() === '') continue
+          usable.push(frame)
+        }
+        return usable
+      }
+
+      return {
+        id: HTML_ADAPTER_ID,
+        match: (path) => matchesHtmlPreviewPath(path),
+        readSelection(target) {
+          if (target === null || target === undefined) return null
+          const tab = target.tab
+          if (tab === null || tab === undefined) return null
+          const wanted = tab.occurrenceId
+          // Without the button's own occurrence there is nothing to compare a frame with.
+          if (typeof wanted !== 'string' || wanted === '') return null
+          const usable = candidates()
+          if (usable.length === 0) return null
+          const matched = []
+          for (const frame of usable) {
+            let seen
+            try {
+              seen = focusedTarget(frame)
+            } catch (_error) {
+              seen = undefined
+            }
+            if (seen === undefined || seen === null) continue
+            const occurrence = seen.occurrence
+            if (occurrence === undefined || occurrence === null) continue
+            if (occurrence.id === wanted) matched.push(frame)
+          }
+          if (matched.length === 1) return captureOf(matched[0], target.path)
+          // Two frames of the same page are indistinguishable here; refuse to guess.
+          if (matched.length > 1) return null
+          if (usable.length === 1) return captureOf(usable[0], target.path)
+          return null
+        },
+      }
+    }
+
+    /* ------------------------------------------------------------------ *
+     * HTML takeover: persistence, gate, registration group, header controls
+     * (I001-F02 core/implementation.md §3, §4, §7, §8)
+     * ------------------------------------------------------------------ */
+
+    /**
+     * Read the browser storage object without letting a denied access reach the
+     * caller. A missing store keeps the takeover closed (C-02).
+     * @returns {object|undefined} the storage object, or undefined.
+     */
+    function readLocalStorage() {
+      try {
+        return typeof localStorage === 'undefined' ? undefined : localStorage
+      } catch (_error) {
+        return undefined
+      }
+    }
+
+    /**
+     * Read the persistent user choice. Missing, foreign or unreadable values are all
+     * "off" (implementation.md §4).
+     * @param {object|undefined|null} storage - a `localStorage`-shaped store.
+     * @returns {boolean} whether the takeover is switched on.
+     */
+    function readHtmlTakeoverPreference(storage) {
+      try {
+        if (storage === null || storage === undefined) return false
+        if (typeof storage.getItem !== 'function') return false
+        return storage.getItem(HTML_TAKEOVER_STORAGE_KEY) === HTML_TAKEOVER_ON
+      } catch (_error) {
+        return false
+      }
+    }
+
+    /**
+     * Persist the user choice. A refused write must never reach the render layer,
+     * and the next read stays fail-closed (implementation.md §4, U-27).
+     * @param {object|undefined|null} storage - a `localStorage`-shaped store.
+     * @param {boolean} on - the choice to persist.
+     */
+    function writeHtmlTakeoverPreference(storage, on) {
+      try {
+        if (storage === null || storage === undefined) return
+        if (typeof storage.setItem !== 'function') return
+        storage.setItem(HTML_TAKEOVER_STORAGE_KEY, on === true ? HTML_TAKEOVER_ON : HTML_TAKEOVER_OFF)
+      } catch (_error) {
+        // The toggle's visual state is the user's answer; the store is best effort.
+      }
+    }
+
+    /**
+     * Build the takeover state machine.
+     *
+     * Every platform registration arrives as an injected factory, so the whole
+     * state machine (including its teardown order) runs head-lessly and nothing
+     * here touches a DSH service directly (implementation.md §4, §8).
+     * @param {object} deps - platform seams and registration factories.
+     * @returns {object} the takeover surface plus its control seams.
+     */
+    function createHtmlTakeover(deps) {
+      const t = deps.t
+      const listeners = new Set()
+      const noticedTargets = new Set()
+      let persistedOn = readHtmlTakeoverPreference(deps.storage)
+      let applied = false
+      let opened = []
+      let bridge = null
+      let unsubscribeGate = null
+      let disposeToggle = null
+      let disposed = false
+
+      /** @returns {boolean} whether the script gate is open right now. */
+      function gateOpen() {
+        try {
+          return deps.gateOpen() === true
+        } catch (_error) {
+          // A value that never arrived is closed, never open (fail-closed).
+          return false
+        }
+      }
+
+      function emit() {
+        if (disposed) return
+        for (const listener of [...listeners]) {
+          try {
+            listener()
+          } catch (_error) {
+            // One broken subscriber cannot stop the others.
+          }
+        }
+      }
+
+      /** @returns {{persistedOn: boolean, gateOpen: boolean, effective: boolean, disabled: boolean}} the header state. */
+      function snapshot() {
+        const open = gateOpen()
+        return {
+          persistedOn,
+          gateOpen: open,
+          effective: persistedOn && open,
+          // The preference stays on; only the gate makes the takeover unreachable.
+          disabled: persistedOn && !open,
+        }
+      }
+
+      /**
+       * Deliver one notice through the session-bound channel. A missing channel is
+       * not an error of its own (F01 §8.1).
+       * @param {'info'|'error'} level - notice tier.
+       * @param {string} key - dictionary key.
+       */
+      function say(level, key) {
+        try {
+          deps.notify(level, t(key))
+        } catch (_error) {
+          // Nothing to write to; the click path already covers its own failures.
+        }
+      }
+
+      /**
+       * Page identity for notice de-duplication; the frame itself when the platform
+       * cannot resolve it.
+       * @param {object} frame - the iframe element.
+       * @returns {object|string} the de-duplication key.
+       */
+      function pageTargetOf(frame) {
+        try {
+          const target = deps.focusedTarget(frame)
+          if (target === null || target === undefined) return frame
+          if (target.occurrence === null || target.occurrence === undefined) return frame
+          return typeof target.occurrence.id === 'string' ? target.occurrence.id : frame
+        } catch (_error) {
+          return frame
+        }
+      }
+
+      /**
+       * Report one bridge failure as a status notice. The notice is charged to the
+       * page target, not to a click, and at most once per target (C-15, C-16).
+       * @param {string} _reason - `timeout` or `error`; both read the same to the user.
+       * @param {object} frame - the iframe element.
+       */
+      function reportFailure(_reason, frame) {
+        const target = pageTargetOf(frame)
+        if (noticedTargets.has(target)) return
+        noticedTargets.add(target)
+        say('info', 'info.htmlBridgeUnavailable')
+      }
+
+      /**
+       * Release a registration list in reverse order, so a failed open leaves no
+       * half-registered state and one throwing disposer cannot strand the rest.
+       * @param {Array<() => void>} list - the disposers in registration order.
+       */
+      function unwind(list) {
+        while (list.length > 0) {
+          const dispose = list.pop()
+          try {
+            dispose()
+          } catch (_error) {
+            // Keep releasing; the caller only needs the end state.
+          }
+        }
+      }
+
+      /**
+       * Prepare the `blob:` payload for one document. A strict UTF-8 failure is a
+       * render failure: no URL, no bridge, no excerpt (implementation.md §5.1).
+       * @param {unknown} bytes - complete page bytes.
+       * @returns {{failed: boolean, url: string|undefined}} the frame source.
+       */
+      function createFrameSource(bytes) {
+        let page
+        try {
+          page = decodeHtmlBytes(bytes)
+        } catch (_error) {
+          return { failed: true, url: undefined }
+        }
+        try {
+          const blob = new Blob([createHtmlBootstrap(page)], { type: 'text/html' })
+          const url = deps.url.createObjectURL(blob)
+          if (typeof url !== 'string' || url === '') return { failed: true, url: undefined }
+          return { failed: false, url }
+        } catch (_error) {
+          return { failed: true, url: undefined }
+        }
+      }
+
+      /**
+       * Release one frame source.
+       * @param {{failed: boolean, url: string|undefined}|undefined} source - a source from `createFrameSource`.
+       */
+      function releaseFrameSource(source) {
+        if (source === null || source === undefined) return
+        if (source.failed === true) return
+        if (typeof source.url !== 'string' || source.url === '') return
+        try {
+          deps.url.revokeObjectURL(source.url)
+        } catch (_error) {
+          // An already released URL needs no second attempt.
+        }
+      }
+
+      /**
+       * Track a mounted iframe in the bridge.
+       * @param {object} frame - the iframe element.
+       * @returns {() => void} detach.
+       */
+      function attachFrame(frame) {
+        if (disposed || bridge === null) return () => {}
+        return bridge.attach(frame)
+      }
+
+      const surface = {
+        snapshot,
+        subscribe(listener) {
+          if (disposed) return () => {}
+          listeners.add(listener)
+          return () => {
+            listeners.delete(listener)
+          }
+        },
+        toggle,
+        createFrameSource,
+        releaseFrameSource,
+        attachFrame,
+      }
+
+      /**
+       * Register the effective set in the C-20 order: bridge listener, definition,
+       * adapter, body, quote button. Any failure unwinds what already happened and
+       * leaves the takeover switched off rather than half-registered.
+       */
+      function open() {
+        const started = []
+        try {
+          const created = createHtmlBridge({
+            window: deps.window,
+            setTimer: deps.setTimer,
+            readyTimeoutMs: HTML_BRIDGE_READY_TIMEOUT_MS,
+            onFailure: reportFailure,
+            // The bridge report is the only selection signal the parent ever gets.
+            onActivity: () => {
+              if (typeof deps.onActivity !== 'function') return
+              try {
+                deps.onActivity()
+              } catch (_error) {
+                // Re-finalizing is best effort; the cached state is already correct.
+              }
+            },
+          })
+          bridge = created
+          started.push(() => {
+            created.dispose()
+          })
+          started.push(deps.registerDefinition())
+          started.push(deps.registerAdapter(created))
+          started.push(deps.registerBody(surface))
+          started.push(deps.registerQuoteButton(surface))
+          opened = started
+          applied = true
+        } catch (_error) {
+          unwind(started)
+          bridge = null
+          opened = []
+          applied = false
+        }
+      }
+
+      /** Release the effective set in reverse order and clear the bridge cache. */
+      function close() {
+        const pending = opened
+        opened = []
+        applied = false
+        unwind(pending)
+        bridge = null
+      }
+
+      /** Reconcile the registration set with the current gate value. */
+      function sync() {
+        if (disposed) return
+        const want = persistedOn && gateOpen()
+        if (want !== applied) {
+          if (want) open()
+          else close()
+        }
+        emit()
+      }
+
+      /**
+       * Flip the persistent choice and run the enable self-check.
+       *
+       * The check emits exactly one notice: `info` when the takeover engaged, `error`
+       * naming the gate when it could not (C-15, U-29). Turning off is silent.
+       */
+      function toggle() {
+        if (disposed) return
+        persistedOn = !persistedOn
+        writeHtmlTakeoverPreference(deps.storage, persistedOn)
+        sync()
+        if (!persistedOn) return
+        if (applied) say('info', 'info.htmlEnabled')
+        else say('error', 'error.htmlGateUnavailable')
+      }
+
+      /** Release everything this takeover registered; safe to call twice. */
+      function dispose() {
+        if (disposed) return
+        close()
+        if (unsubscribeGate !== null) {
+          const off = unsubscribeGate
+          unsubscribeGate = null
+          try {
+            off()
+          } catch (_error) {
+            // The gate subscription is gone from the provider's side either way.
+          }
+        }
+        if (disposeToggle !== null) {
+          const off = disposeToggle
+          disposeToggle = null
+          try {
+            off()
+          } catch (_error) {
+            // A refused slot removal must not keep the plugin alive.
+          }
+        }
+        listeners.clear()
+        noticedTargets.clear()
+        disposed = true
+      }
+
+      // The toggle is the only entry point, so it exists even while the takeover is
+      // off; it is torn down last, with the rest of the plugin.
+      try {
+        disposeToggle = deps.registerToggle(surface)
+      } catch (_error) {
+        disposeToggle = null
+      }
+      try {
+        unsubscribeGate = deps.subscribeGate(() => {
+          sync()
+        })
+      } catch (_error) {
+        unsubscribeGate = null
+      }
+      sync()
+
+      return Object.assign(surface, { dispose })
+    }
+
+    /**
+     * Build the header takeover toggle.
+     *
+     * It renders for HTML paths only and stays clickable while the takeover is off,
+     * because switching it on is how the user expresses the preference. While the
+     * gate is closed and the preference is on it is disabled and explains why
+     * (implementation.md §7, U-26).
+     * @param {object} React - the platform React module.
+     * @param {{html: object, t: (key: string) => string}} deps - the takeover surface and the fallback translate.
+     * @returns {Function} the component.
+     */
+    function createHtmlToggleComponent(React, deps) {
+      const html = deps.html
+      return function SideQuoteHtmlToggle(props) {
+        const applies = matchesHtmlPreviewPath(props.absolutePath)
+        const translate = typeof props.t === 'function' ? props.t : deps.t
+        const [current, setCurrent] = React.useState(html.snapshot())
+        React.useEffect(() => {
+          if (!applies) return undefined
+          const sync = () => {
+            setCurrent(html.snapshot())
+          }
+          const unsubscribe = html.subscribe(sync)
+          sync()
+          return unsubscribe
+        }, [applies])
+        // Outside the HTML formats this plugin renders nothing at all.
+        if (!applies) return null
+        const label = translate('html.toggleLabel')
+        return React.createElement('button', {
+          type: 'button',
+          'data-side-quote-html-toggle': '',
+          'aria-pressed': current.persistedOn ? 'true' : 'false',
+          'aria-label': label,
+          disabled: current.disabled,
+          title: current.disabled ? translate('html.toggleGateReason') : translate('html.toggleTooltip'),
+          onClick: () => {
+            html.toggle()
+          },
+        }, label)
+      }
+    }
+
+    /**
+     * Build the HTML quote button variant.
+     *
+     * It is registered only while the takeover is effective and shares the F01
+     * actions: one history, one insert path, one notice budget. Availability is
+     * decided by the bridge cache plus the core's witness branch (implementation.md
+     * §7, §9).
+     * @param {object} React - the platform React module.
+     * @param {{actions: object, t: (key: string) => string}} deps - the quote actions and the fallback translate.
+     * @returns {Function} the component.
+     */
+    function createHtmlQuoteButtonComponent(React, deps) {
+      const actions = deps.actions
+      return function SideQuoteHtmlButton(props) {
+        const absolutePath = props.absolutePath
+        const applies = matchesHtmlPreviewPath(absolutePath)
+        const translate = typeof props.t === 'function' ? props.t : deps.t
+        const buttonRef = React.useRef(null)
+        const [enabled, setEnabled] = React.useState(false)
+        React.useEffect(() => {
+          if (!applies) return undefined
+          const element = buttonRef.current
+          if (element === null || element === undefined) return undefined
+          const detach = actions.attach(element, absolutePath)
+          const sync = () => {
+            setEnabled(actions.stateOf(element).enabled)
+          }
+          const unsubscribe = actions.subscribe(sync)
+          sync()
+          return () => {
+            unsubscribe()
+            detach()
+          }
+        }, [applies, absolutePath])
+        if (!applies) return null
+        const label = translate('html.quoteButton')
+        return React.createElement('button', {
+          type: 'button',
+          ref: buttonRef,
+          disabled: !enabled,
+          'data-side-quote-html-quote': '',
+          'aria-label': label,
+          title: translate('html.quoteTooltip'),
+          // Keep the in-frame selection alive until `click` reads the bridge cache.
+          onMouseDown: (event) => {
+            event.preventDefault()
+          },
+          onClick: () => {
+            actions.click(buttonRef.current)
+          },
+        }, label)
+      }
+    }
+
+    /**
+     * Build the takeover body.
+     *
+     * The page is carried by a `blob:` iframe with `sandbox="allow-scripts"` and an
+     * opaque origin, so the page can neither read this document nor be read from it
+     * except through the bridge (implementation.md §5.1).
+     * @param {object} React - the platform React module.
+     * @param {{html: object, t: (key: string) => string}} deps - the takeover surface and the fallback translate.
+     * @returns {Function} the component.
+     */
+    function createHtmlBodyComponent(React, deps) {
+      const html = deps.html
+      return function SideQuoteHtmlBody(props) {
+        const translate = typeof props.t === 'function' ? props.t : deps.t
+        const content = props.content
+        const usable = content !== null && content !== undefined && content.kind === 'bytes'
+        const frameRef = React.useRef(null)
+        const [source, setSource] = React.useState(undefined)
+        React.useEffect(() => {
+          if (content === null || content === undefined || content.kind !== 'bytes') {
+            setSource(undefined)
+            return undefined
+          }
+          const created = html.createFrameSource(content.data)
+          setSource(created)
+          return () => {
+            html.releaseFrameSource(created)
+          }
+        }, [content])
+        React.useEffect(() => {
+          if (source === undefined || source.failed === true) return undefined
+          const frame = frameRef.current
+          if (frame === null || frame === undefined) return undefined
+          return html.attachFrame(frame)
+        }, [source])
+        if (!usable) return null
+        if (source === undefined) return null
+        if (source.failed === true) {
+          // The failure line is the whole feedback; there is no bridge and no excerpt.
+          return React.createElement('p', { role: 'alert', 'data-side-quote-html': '' }, translate('html.failed'))
+        }
+        return React.createElement('div', {
+          'data-side-quote-html': '',
+          style: { position: 'relative', width: '100%', height: '100%' },
+        }, React.createElement('iframe', {
+          ref: frameRef,
+          key: source.url,
+          src: source.url,
+          sandbox: 'allow-scripts',
+          title: translate('html.frame'),
+          'data-side-quote-html-frame': '',
+          style: { position: 'absolute', inset: '0', width: '100%', height: '100%', border: '0' },
+        }))
+      }
+    }
+
+    /* ------------------------------------------------------------------ *
      * Locale dictionaries (§ C-27): UI copy only, never content copy.
      * ------------------------------------------------------------------ */
 
@@ -691,6 +1665,18 @@ window.__ModuleLoader__.load({
         'error.readFailed': '读取选区失败，无法插入引用。',
         'error.insertRejected': '输入框当前不接受引用，请稍后再试。',
         'info.sensitive': '已引用可能含敏感内容的文件：{path}。内容已原样插入，请确认是否要发送。',
+        // I001-F02: HTML takeover UI copy only, never quote content.
+        'html.viewerTitle': 'HTML（可引用）',
+        'html.toggleLabel': '接管 HTML 预览',
+        'html.toggleTooltip': '开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。',
+        'html.toggleGateReason': '需要先开启「开发者工具」（页面脚本）才能接管预览。',
+        'html.frame': 'HTML 文档预览',
+        'html.failed': '无法预览这份 HTML 文档',
+        'html.quoteButton': '引用',
+        'html.quoteTooltip': '把预览中选中的文字引用到当前会话',
+        'info.htmlEnabled': '已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。',
+        'info.htmlBridgeUnavailable': '当前 HTML 页面无法建立引用桥，划词引用暂不可用。',
+        'error.htmlGateUnavailable': '未能接管 HTML 预览：需要先开启「开发者工具」（页面脚本）。',
       },
       en: {
         'quote.button': 'Quote',
@@ -702,6 +1688,18 @@ window.__ModuleLoader__.load({
         'error.readFailed': 'The selection could not be read, so the quote was not inserted.',
         'error.insertRejected': 'The composer does not accept a quote right now; try again later.',
         'info.sensitive': 'Quoted a file that may contain sensitive content: {path}. Its content was inserted as-is; confirm before sending.',
+        // I001-F02: HTML takeover UI copy only, never quote content.
+        'html.viewerTitle': 'HTML (quotable)',
+        'html.toggleLabel': 'Take over the HTML preview',
+        'html.toggleTooltip': 'Render this page with this plugin so text can be quoted; external CSS, scripts and images will not load.',
+        'html.toggleGateReason': 'Turn on Developer tools (page scripts) before this takeover can render the page.',
+        'html.frame': 'HTML document preview',
+        'html.failed': 'This HTML document could not be previewed.',
+        'html.quoteButton': 'Quote',
+        'html.quoteTooltip': 'Quote the selected text into this session',
+        'info.htmlEnabled': 'HTML preview taken over: text can now be quoted; external CSS, scripts and images will not load.',
+        'info.htmlBridgeUnavailable': 'This page could not establish the quote bridge, so quoting is unavailable for now.',
+        'error.htmlGateUnavailable': 'The HTML preview could not be taken over: Developer tools (page scripts) must be on.',
       },
     }
 
@@ -804,13 +1802,20 @@ window.__ModuleLoader__.load({
     /**
      * Wire the plugin onto a client context. Every resource is registered through
      * `ctx.effect`, so unloading the plugin releases listeners, timers, adapters,
-     * dictionaries, the slot contribution and the quoted-file record.
+     * dictionaries, the slot contributions, the quoted-file record and the whole
+     * HTML takeover group.
      * @param {object} ctx - the client context.
-     * @param {{document?: Document}} host - the product document (injectable for tests).
-     * @returns {{registry: object, history: object, actions: object}} the wired internals.
+     * @param {{document?: Document, window?: object, storage?: object, url?: object}} host
+     *   browser globals; every member is injectable for tests and falls back to the
+     *   real global (`globalThis` / `localStorage` / `URL`).
+     * @returns {{registry: object, history: object, actions: object, html: object|null}} the wired internals.
      */
     function applyPlugin(ctx, host) {
-      const doc = host === undefined || host === null ? undefined : host.document
+      const source = host === undefined || host === null ? {} : host
+      const doc = source.document
+      const win = source.window === undefined ? globalThis : source.window
+      const storage = source.storage === undefined ? readLocalStorage() : source.storage
+      const url = source.url === undefined ? globalThis.URL : source.url
       const registry = createAdapterRegistry()
       const history = createQuoteHistory()
       const t = ctx.locale.bind(NS)
@@ -859,6 +1864,80 @@ window.__ModuleLoader__.load({
         history.clear()
       }, 'side-quote: quoted files')
 
+      // The whole HTML takeover lives in one managed group, inserted between the
+      // F01 teardown effects and the F01 button contribution: the toggle it always
+      // contributes, its gate subscription and, while effective, the definition,
+      // the body, the adapter, the quote button and the bridge listener. Its own
+      // teardown releases them in reverse order (implementation.md §8, C-20).
+      let html = null
+      ctx.effect(() => {
+        const takeover = createHtmlTakeover({
+          t,
+          storage,
+          window: win,
+          url,
+          setTimer: (callback, ms) => ctx.timer.timeout(callback, ms),
+          gateOpen: () => {
+            try {
+              return ctx.configForms.developerTools.enabled.getSnapshot() === true
+            } catch (_error) {
+              return false
+            }
+          },
+          subscribeGate: (listener) => {
+            try {
+              return ctx.configForms.developerTools.enabled.subscribe(listener)
+            } catch (_error) {
+              return () => {}
+            }
+          },
+          notify: (level, text) => {
+            notifyOnScreenSession(ctx, level, text)
+          },
+          // A bridge report must re-finalize the header buttons: the iframe's own
+          // selection events never reach the parent document.
+          onActivity: () => {
+            actions.scheduleRefresh()
+          },
+          focusedTarget: (element) => ctx.sidebarRight.focusedTarget(element),
+          registerDefinition: () => ctx.documentPreviews.register({
+            id: HTML_BODY_ID,
+            extensions: HTML_EXTENSIONS,
+            priority: 'extension',
+            title: () => t('html.viewerTitle'),
+            loading: 'bytes-complete',
+            wrap: false,
+          }),
+          registerAdapter: (created) => registry.register(createHtmlQuoteAdapter({
+            bridge: created,
+            focusedTarget: (element) => ctx.sidebarRight.focusedTarget(element),
+          })),
+          registerBody: (surface) => ctx.slots.inject('sidebar.right.tab.document', () => ctx.slots.register(
+            { name: 'sidebar.right.tab.document', key: HTML_BODY_ID, locale: NS },
+            createHtmlBodyComponent(React, { html: surface, t }),
+          )),
+          registerQuoteButton: () => ctx.slots.inject(
+            'sidebar.right.tab.document.actions',
+            () => ctx.slots.register(
+              { name: 'sidebar.right.tab.document.actions', id: HTML_QUOTE_SLOT_ID, locale: NS },
+              createHtmlQuoteButtonComponent(React, { actions, t }),
+            ),
+          ),
+          registerToggle: (surface) => ctx.slots.inject(
+            'sidebar.right.tab.document.actions',
+            () => ctx.slots.register(
+              { name: 'sidebar.right.tab.document.actions', id: HTML_TOGGLE_SLOT_ID, locale: NS },
+              createHtmlToggleComponent(React, { html: surface, t }),
+            ),
+          ),
+        })
+        html = takeover
+        return () => {
+          html = null
+          takeover.dispose()
+        }
+      }, 'side-quote: html takeover')
+
       const Button = createQuoteButtonComponent(React, { actions, t })
       ctx.effect(
         () => ctx.slots.inject('sidebar.right.tab.document.actions', () => ctx.slots.register({
@@ -869,7 +1948,7 @@ window.__ModuleLoader__.load({
         'side-quote: document actions',
       )
 
-      return { registry, history, actions }
+      return { registry, history, actions, html }
     }
 
     /* ------------------------------------------------------------------ *
@@ -894,12 +1973,25 @@ window.__ModuleLoader__.load({
       QUOTE_HISTORY_SEPARATOR,
       DEBOUNCE_MS,
       TEXT_ADAPTER_ID,
+      HTML_TAKEOVER_STORAGE_KEY,
+      HTML_TAKEOVER_ON,
+      HTML_TAKEOVER_OFF,
+      HTML_BODY_ID,
+      HTML_EXTENSIONS,
+      HTML_ADAPTER_ID,
+      HTML_BRIDGE_CHANNEL,
+      HTML_BRIDGE_VERSION,
+      HTML_BRIDGE_MAX_TEXT,
+      HTML_BRIDGE_READY_TIMEOUT_MS,
+      HTML_TOGGLE_SLOT_ID,
+      HTML_QUOTE_SLOT_ID,
       LOCALES,
       fileNameOf,
       normalizePath,
       relativizePath,
       isAllowedPath,
       isSensitiveName,
+      matchesHtmlPreviewPath,
       truncateExcerpt,
       composeOriginalQuote,
       composePointerQuote,
@@ -913,17 +2005,36 @@ window.__ModuleLoader__.load({
       createSelectionMonitor,
       createQuoteActions,
       createQuoteButtonComponent,
+      createHtmlBridge,
+      createHtmlTakeover,
+      createHtmlQuoteAdapter,
+      createHtmlBootstrap,
+      createHtmlBodyComponent,
+      createHtmlToggleComponent,
+      createHtmlQuoteButtonComponent,
+      decodeHtmlBytes,
       applyPlugin,
     }
 
     return {
       // Client services this bundle reads: the slot registry, the right sidebar
       // (on-screen session + element ownership), sessions (scope + workspace
-      // root), the conversation input facade, the dictionaries, and the
-      // disposable timer used by the button-state debounce.
-      inject: ['slots', 'sidebarRight', 'sessions', 'conversation', 'locale', 'timer'],
+      // root), the conversation input facade, the dictionaries, the disposable
+      // timer used by the button-state debounce, the document-preview registry
+      // the HTML takeover registers into, and the script gate it follows.
+      // Cordis has no optional injection, so the two I001-F02 services are hard
+      // requirements of this bundle.
+      inject: [
+        'slots', 'sidebarRight', 'sessions', 'conversation', 'locale', 'timer',
+        'documentPreviews', 'configForms',
+      ],
       apply(ctx) {
-        applyPlugin(ctx, { document: typeof document === 'undefined' ? undefined : document })
+        applyPlugin(ctx, {
+          document: typeof document === 'undefined' ? undefined : document,
+          window: typeof window === 'undefined' ? undefined : window,
+          storage: readLocalStorage(),
+          url: typeof URL === 'undefined' ? undefined : URL,
+        })
       },
       internals,
     }
