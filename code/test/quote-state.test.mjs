@@ -15,6 +15,7 @@ const { internals } = await loadClientInternals()
 
 const BUTTON = { tag: 'button' }
 const ANCHOR = { tag: 'anchor' }
+const END_ANCHOR = { tag: 'end-anchor' }
 const PATH = 'notes/a.md'
 const SESSION = 'session-1'
 
@@ -85,6 +86,9 @@ function createActionHarness(overrides = {}) {
     own: { sessionId: SESSION, occurrence: { id: 'occurrence-1' } },
     selection: { sessionId: SESSION, occurrence: { id: 'occurrence-1' } },
     anchor: ANCHOR,
+    endAnchor: ANCHOR,
+    endSelection: { sessionId: SESSION, occurrence: { id: 'occurrence-1' } },
+    endThrows: false,
     selectionText: 'hello',
     workspaceRoot: 'D:/proj',
     scope: { scopeId: 'scope-1' },
@@ -111,9 +115,14 @@ function createActionHarness(overrides = {}) {
       if (state.focusedThrows) throw new Error('sidebarRight: tab occurrence is not synced')
       if (element === BUTTON) return state.own
       if (element === ANCHOR) return state.selection
+      if (element === END_ANCHOR) {
+        if (state.endThrows) throw new Error('sidebarRight: end occurrence is not synced')
+        return state.endSelection
+      }
       return undefined
     },
     selectionAnchor: () => state.anchor,
+    selectionEnd: () => state.endAnchor,
     sessionScope: () => state.scope,
     inputFor: () => ({
       insertQuote(text, summary) {
@@ -224,8 +233,10 @@ test('U-14 失败分支：无屏幕会话、无作用域、空白选区、插入
   assert.equal(noSession.notifications[0].level, 'error')
   assert.equal(noSession.notifications[0].text, 'error.noSession')
 
-  // 2. sessions.scope() answers undefined.
+  // 2. sessions.scope() answers undefined: the button must already be greyed,
+  //    because a state without a session scope cannot be inserted at all.
   const noScope = createActionHarness({ scope: undefined })
+  assert.equal(noScope.actions.stateOf(BUTTON).enabled, false, 'no session scope must grey the button')
   noScope.actions.click(BUTTON)
   assert.equal(noScope.inserted.length, 0)
   assert.equal(noScope.notifications.length, 1)
@@ -337,6 +348,7 @@ test('U-16 适配器接缝：重复 id 抛错、注销后不再调用、假适�
       ? { sessionId: SESSION, occurrence: { id: 'occurrence-1' } }
       : undefined),
     selectionAnchor: () => ANCHOR,
+    selectionEnd: () => ANCHOR,
     sessionScope: () => ({}),
     inputFor: () => ({ insertQuote: (text) => { inserted.push(text); return true }, notify() {} }),
     workspaceRoot: () => 'D:/proj',
@@ -478,7 +490,7 @@ test('U-15 清理：装 → 卸一次后监听、定时器、适配器、字典�
   assert.equal(finalized, 0, 'a torn-down plugin never finalizes button state again')
 })
 
-test('readSelectionAnchor：文本节点取父元素，元素节点直接用', () => {
+test('readSelectionAnchor / readSelectionEndAnchor：两侧都按节点解析', () => {
   const element = { nodeType: 1 }
   const textNode = { nodeType: 3, parentElement: element }
   assert.equal(internals.readSelectionAnchor({ getSelection: () => ({ anchorNode: textNode }) }), element)
@@ -486,6 +498,20 @@ test('readSelectionAnchor：文本节点取父元素，元素节点直接用', (
   assert.equal(internals.readSelectionAnchor({ getSelection: () => null }), null)
   assert.equal(internals.readSelectionAnchor({ getSelection: () => ({ anchorNode: null }) }), null)
   assert.equal(internals.readSelectionAnchor(undefined), null)
+
+  // The end side prefers the selection's focus node.
+  assert.equal(internals.readSelectionEndAnchor({ getSelection: () => ({ focusNode: textNode }) }), element)
+  assert.equal(internals.readSelectionEndAnchor({ getSelection: () => ({ focusNode: element }) }), element)
+  // Without a focus node it falls back to the range end.
+  assert.equal(
+    internals.readSelectionEndAnchor({
+      getSelection: () => ({ focusNode: null, rangeCount: 1, getRangeAt: () => ({ endContainer: textNode }) }),
+    }),
+    element,
+  )
+  // Nothing to resolve is null, never a silent anchor-only answer.
+  assert.equal(internals.readSelectionEndAnchor({ getSelection: () => ({ focusNode: null, rangeCount: 0 }) }), null)
+  assert.equal(internals.readSelectionEndAnchor(undefined), null)
 })
 
 test('选区文本优先经 Range 读取：Selection.toString 为空时仍须读到文字', () => {
@@ -554,6 +580,43 @@ test('U-12 附加：按钮状态由同一预览体内的非空白选区决定', 
 
   harness.detach()
   assert.equal(harness.actions.stateOf(BUTTON).enabled, false, 'a detached button is never enabled')
+})
+
+test('H-1 归属校验覆盖选区结束侧：跨预览体的选区必须置灰且不插入', () => {
+  // Both sides of a single-preview selection stay enabled (no over-greying).
+  const same = createActionHarness()
+  assert.equal(same.actions.stateOf(BUTTON).enabled, true, 'a selection inside one preview stays enabled')
+  same.actions.click(BUTTON)
+  assert.equal(same.inserted.length, 1)
+
+  // A selection dragged from this preview into another tab instance: one valid
+  // DOM selection, two different occurrences. The button must be greyed and a
+  // raced click must refuse, because the excerpt would span two files.
+  const cross = createActionHarness({
+    endAnchor: END_ANCHOR,
+    endSelection: { sessionId: SESSION, occurrence: { id: 'occurrence-2' } },
+  })
+  assert.equal(cross.actions.stateOf(BUTTON).enabled, false, 'a cross-preview selection must grey the button')
+  cross.actions.click(BUTTON)
+  assert.equal(cross.inserted.length, 0, 'a cross-preview selection must never insert')
+  assert.equal(cross.notifications.length, 1, 'exactly one error notice')
+  assert.equal(cross.notifications[0].level, 'error')
+
+  // An end side that resolves to no element greys the button; there is no
+  // anchor-only fallback.
+  const noEnd = createActionHarness({ endAnchor: null })
+  assert.equal(noEnd.actions.stateOf(BUTTON).enabled, false, 'an unresolvable end side must grey the button')
+  noEnd.actions.click(BUTTON)
+  assert.equal(noEnd.inserted.length, 0)
+
+  // An end side whose occurrence is not synced throws inside the platform; the
+  // button is greyed and nothing escapes.
+  const throwing = createActionHarness({ endAnchor: END_ANCHOR, endThrows: true })
+  assert.doesNotThrow(() => throwing.actions.stateOf(BUTTON))
+  assert.equal(throwing.actions.stateOf(BUTTON).enabled, false)
+  assert.doesNotThrow(() => throwing.actions.click(BUTTON))
+  assert.equal(throwing.inserted.length, 0)
+  assert.equal(throwing.notifications.length, 1)
 })
 
 test('格式白名单外的路径永远不可用', () => {

@@ -351,19 +351,48 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Resolve the DOM element the current parent-document selection is anchored in.
-     * This is the second element of the ownership comparison (implementation.md §3.1).
+     * Resolve the element a selection boundary node belongs to.
+     * @param {Node|null|undefined} node - a text or element node.
+     * @returns {Element|null} the owning element, or null.
+     */
+    function elementOfSelectionNode(node) {
+      if (node === null || node === undefined) return null
+      if (node.nodeType === 1) return node
+      return node.parentElement === undefined ? null : node.parentElement
+    }
+
+    /**
+     * Resolve the DOM element the current parent-document selection starts in.
+     * This is the first of the three elements the ownership comparison needs.
      * @param {Document|undefined} document - the product document.
-     * @returns {Element|null} the anchor element, or null when there is no selection.
+     * @returns {Element|null} the start element, or null when there is no selection.
      */
     function readSelectionAnchor(document) {
       if (document === null || document === undefined || typeof document.getSelection !== 'function') return null
       const selection = document.getSelection()
       if (selection === null || selection === undefined) return null
-      const node = selection.anchorNode
-      if (node === null || node === undefined) return null
-      if (node.nodeType === 1) return node
-      return node.parentElement === undefined ? null : node.parentElement
+      return elementOfSelectionNode(selection.anchorNode)
+    }
+
+    /**
+     * Resolve the DOM element the current selection ends in.
+     *
+     * A selection dragged from one preview into another is one valid DOM
+     * selection; without this side the button of the first preview would quote
+     * text owned by the second one (implementation.md §8, C-04).
+     * @param {Document|undefined} document - the product document.
+     * @returns {Element|null} the end element, or null when there is none.
+     */
+    function readSelectionEndAnchor(document) {
+      if (document === null || document === undefined || typeof document.getSelection !== 'function') return null
+      const selection = document.getSelection()
+      if (selection === null || selection === undefined) return null
+      const focused = elementOfSelectionNode(selection.focusNode)
+      if (focused !== null) return focused
+      // A selection always has a focus node; the range end is the same side when
+      // the platform reports none.
+      if (typeof selection.getRangeAt !== 'function' || selection.rangeCount === 0) return null
+      return elementOfSelectionNode(selection.getRangeAt(0).endContainer)
     }
 
     /* ------------------------------------------------------------------ *
@@ -404,10 +433,6 @@ window.__ModuleLoader__.load({
             cancel()
             cancel = null
           }
-        },
-        /** @returns {boolean} whether the debouncer has been disposed. */
-        isDisposed() {
-          return disposed
         },
       }
     }
@@ -478,20 +503,27 @@ window.__ModuleLoader__.load({
       }
 
       /**
-       * Resolve the two elements that must share one tab occurrence, plus the
-       * click-time selection anchor. Throws only from the platform's
-       * `focusedTarget`; callers turn that into "greyed" or one error.
+       * Resolve the elements that must all share one tab occurrence: the button,
+       * the selection's start side and the selection's end side. A selection that
+       * spans two previews is refused rather than attributed to one of them.
+       * Throws only from the platform's `focusedTarget`; callers turn that into
+       * "greyed" or one error.
        */
       function resolveTargets(element, sessionId) {
         const own = deps.focusedTarget(element)
         if (own === undefined || own === null || own.sessionId !== sessionId) return null
-        const anchor = deps.selectionAnchor()
-        if (anchor === null || anchor === undefined) return null
-        const selected = deps.focusedTarget(anchor)
-        if (selected === undefined || selected === null || selected.sessionId !== sessionId) return null
-        if (own.occurrence === undefined || selected.occurrence === undefined) return null
-        if (own.occurrence.id !== selected.occurrence.id) return null
-        return { anchor }
+        const startElement = deps.selectionAnchor()
+        if (startElement === null || startElement === undefined) return null
+        const endElement = deps.selectionEnd()
+        if (endElement === null || endElement === undefined) return null
+        const start = deps.focusedTarget(startElement)
+        if (start === undefined || start === null || start.sessionId !== sessionId) return null
+        const end = deps.focusedTarget(endElement)
+        if (end === undefined || end === null || end.sessionId !== sessionId) return null
+        if (own.occurrence === undefined || start.occurrence === undefined || end.occurrence === undefined) return null
+        if (own.occurrence.id !== start.occurrence.id) return null
+        if (own.occurrence.id !== end.occurrence.id) return null
+        return { anchor: startElement }
       }
 
       function stateOf(element) {
@@ -501,6 +533,10 @@ window.__ModuleLoader__.load({
         try {
           const sessionId = deps.mountedSessionId()
           if (sessionId === undefined || sessionId === null) return { enabled: false }
+          // Without a retained session scope there is no insertion target and no
+          // session-bound notice channel, so the state is not actionable at all.
+          const scope = deps.sessionScope(sessionId)
+          if (scope === undefined || scope === null) return { enabled: false }
           const targets = resolveTargets(element, sessionId)
           if (targets === null) return { enabled: false }
           const adapter = deps.registry.match(entry.path)
@@ -619,10 +655,6 @@ window.__ModuleLoader__.load({
             listeners.delete(listener)
           }
         },
-        /** Recompute and broadcast now. */
-        refresh() {
-          emit()
-        },
         /** Recompute and broadcast after the contract debounce window. */
         scheduleRefresh() {
           debouncer.schedule()
@@ -631,10 +663,6 @@ window.__ModuleLoader__.load({
         /** @returns {boolean} whether a click is being processed. */
         isBusy() {
           return inFlight
-        },
-        /** @returns {boolean} whether the actions were disposed. */
-        isDisposed() {
-          return disposed
         },
         /** Release the debouncer, every button and every subscriber. */
         dispose() {
@@ -796,6 +824,7 @@ window.__ModuleLoader__.load({
         mountedSessionId: () => ctx.sidebarRight.mounted.getSnapshot(),
         focusedTarget: (element) => ctx.sidebarRight.focusedTarget(element),
         selectionAnchor: () => readSelectionAnchor(doc),
+        selectionEnd: () => readSelectionEndAnchor(doc),
         sessionScope: (sessionId) => ctx.sessions.scope(sessionId),
         inputFor: (scope) => ctx.conversation.input.for(scope),
         workspaceRoot: (sessionId) => readWorkspaceRoot(ctx, sessionId),
@@ -867,7 +896,6 @@ window.__ModuleLoader__.load({
       TEXT_ADAPTER_ID,
       LOCALES,
       fileNameOf,
-      basenameOf: fileNameOf,
       normalizePath,
       relativizePath,
       isAllowedPath,
@@ -880,6 +908,7 @@ window.__ModuleLoader__.load({
       createTextSelectionAdapter,
       selectionTextOf,
       readSelectionAnchor,
+      readSelectionEndAnchor,
       createButtonStateDebouncer,
       createSelectionMonitor,
       createQuoteActions,

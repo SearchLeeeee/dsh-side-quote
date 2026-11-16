@@ -35,17 +35,23 @@ node --check code/client.js
 node --test "code/test/**/*.test.mjs"
 ```
 
-端到端层需要已存在的外部实例与浏览器驱动：
+端到端层需要已存在的外部实例与浏览器驱动（PowerShell）：
 
-```bash
-SIDE_QUOTE_E2E_BASE_URL=http://127.0.0.1:3181 \
-SIDE_QUOTE_E2E_CDP=http://127.0.0.1:9222 \
+```powershell
+$env:SIDE_QUOTE_E2E_BASE_URL = 'http://127.0.0.1:<port>/?token=<boot token>'
+$env:SIDE_QUOTE_E2E_CDP      = 'http://127.0.0.1:<cdp port>'
+$env:SIDE_QUOTE_E2E_EVIDENCE_DIR = '<evidence dir>'   # 必需：截图与 sidecar 落这里
 node --test "code/test/e2e/**/*.test.mjs"
 ```
 
-变量缺失时用例 `skip`，理由写明「未提供 DSH 实例」或「未提供浏览器驱动」——**`skip` 不等于
-通过**。运行端到端层请使用独立 profile 与独立端口，不要复用正在使用的实例（本机 `3181`
-可能落在 Windows 保留端口段内，换一个可绑定的端口并在证据里记下实际值）。
+**实际端口以验收环境文档为准**：`3181` 只是默认值，在本机它落在 Windows 保留端口段
+（`netsh interface ipv4 show excludedportrange protocol=tcp` 的 3119–3218）内、无法绑定，
+所以正式运行会用验收文档登记的可绑定端口。
+
+变量缺失时用例 `skip`，理由写明「未提供 DSH 实例」「未提供浏览器驱动」或
+「未提供证据目录」——**`skip` 不等于通过**。运行端到端层请使用独立 profile 与独立端口，
+不要复用正在使用的实例；指向 live 端口 `3081` 时脚本会直接拒绝运行（除非显式设置
+`SIDE_QUOTE_E2E_ALLOW_LIVE=1`），因为 `E-08` 会真的停用插件。
 
 端到端层的操作前提（脚本不自行创建）：
 
@@ -55,8 +61,11 @@ node --test "code/test/e2e/**/*.test.mjs"
   `report.pdf`、`image.png`、`table.xlsx`、`doc.docx`、`page.html`。
 - 名为 `.env` 的夹具在 Files 页属隐藏项，脚本无法列出；`.env` 的引用与警示只由单元层
   （U-10/U-11）覆盖，浏览器层用 `notes/secret.md` 走同一条「原样插入 + 一条 info」路径。
-- 首次加载会弹出预览版说明对话框，它带全屏遮罩并会吞掉所有真实鼠标事件；脚本在导航前
-  先关闭它，否则按钮只能被 DOM 激活而不能被真实指针点击。
+- 首次加载会弹出预览版说明对话框，它带全屏遮罩并会吞掉所有真实鼠标事件。脚本在
+  `waitForAppShell` 里、页面加载之后与文件导航之前关闭它；否则按钮只能被 DOM 激活，
+  真实指针点击不可达。
+- 每张截图旁会写一个同名 `.json` sidecar，记录 Git revision、实例地址与端口、profile、
+  视口（1440×900）与用例编号。
 
 ## 已知取舍（已记录，不修好）
 
@@ -69,6 +78,9 @@ node --test "code/test/e2e/**/*.test.mjs"
 6. **手写 bundle 与本版 DSH 客户端接口强耦合**：升级到新 rc 后必须重跑单元层与端到端层，
    回归责任在本项目，不在 DSH。
 7. **截断阈值固定为 200 行 / 8000 字符**，不可配置。
+8. **没有屏幕会话或没有保留的会话作用域时，按钮直接置灰**：这两种状态下不存在会话绑定的
+   通知通道，插件既无法插入也无法告知失败，因此不把"可点但必然失败"暴露给用户。竞态下真的
+   点到时仍走一次失败分支，但那条通知没有通道可投递，用户不会看到提示。
 
 ## 实现取舍（本轮新增）
 

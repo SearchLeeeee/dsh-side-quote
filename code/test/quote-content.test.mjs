@@ -205,7 +205,7 @@ test('U-18 summary 契约：只承载展示，不超出 text 的信息', () => {
   for (const composed of [quote, truncated, pointer]) {
     assert.equal(composed.text.includes(composed.summary.title), true, 'the title must appear in text')
     assert.equal(composed.text.includes(composed.summary.body), true, 'the body must appear in text')
-    assert.equal(composed.summary.label, internals.basenameOf(composed.summary.title))
+    assert.equal(composed.summary.label, internals.fileNameOf(composed.summary.title))
   }
 })
 
