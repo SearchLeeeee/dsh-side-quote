@@ -1,0 +1,132 @@
+{
+  "run": "I001-F02-wiki-merge",
+  "initiative": "I001",
+  "feature": "I001-F02",
+  "phase": "canonical_apply",
+  "performedAt": "2026-11-16T12:40:00Z",
+  "preflight": {
+    "workRoot": "D:\\dsh-side-quote",
+    "wikiRoot": "D:\\dsh-side-quote\\wiki",
+    "sourcePath": "wiki/feature-workspace/initiatives/initiative-i001-side-quote/features/feat-i001-f02-html-preview-takeover",
+    "sourceKind": "directory",
+    "sourceSha256": "8116d363e844414a02d23078645f72bcf0072fab31fbd2269d111f2ca4667aa2",
+    "sourceIsMergedFeature": false,
+    "gatesBefore": {
+      "initiativeMergeReady": "passed: initiative I001 is ready for ordered feature merges",
+      "featureMergeReady": "passed: feature is ready to merge",
+      "dependency": "I001-F01 merged/completed in the previous boundary"
+    },
+    "vcs": {
+      "revision": "a139464",
+      "workingTree": "clean"
+    }
+  },
+  "inventory": {
+    "eligible": [
+      "core/implementation.md",
+      "core/quote-content-contract.md",
+      "core/testing-and-acceptance.md",
+      "evidence/review-gate-record.md",
+      "evidence/verification-record.md",
+      "evidence/workspace-validation.md",
+      "feasibility/summary.md"
+    ],
+    "skippedExcluded": [
+      "code-ai/README.md",
+      "code-ai/implementation-plan.md",
+      "code-ai/reading-agent-profile.md",
+      "code-ai/core-implementation-agent-profile.md",
+      "code-ai/review-agent-profile.md",
+      "code-ai/verification-agent-profile.md",
+      "discussion/workbench.md"
+    ],
+    "ignoredNonMarkdown": [
+      "evidence/e2e/**",
+      "evidence/e2e-f0b8318-partial/**",
+      "evidence/e2e-independent/**",
+      "evidence/manual/**",
+      "evidence/manual-final/**"
+    ]
+  },
+  "mapping": [
+    {
+      "source": "core/implementation.md",
+      "target": "wiki/implementation/frontend/sidebar-quote-implementation.md",
+      "action": "update",
+      "reason": "接管注册形状、闸门状态机、iframe 桥、未知 witness 归属分支、头部控件与降级并入既有实现契约",
+      "conflict": "none"
+    },
+    {
+      "source": "core/quote-content-contract.md",
+      "target": "wiki/implementation/frontend/sidebar-quote-contract.md",
+      "action": "update",
+      "reason": "新增 HTML 摘录保真条款、白名单与接管的关系、共用的已引用记录空间",
+      "conflict": "none"
+    },
+    {
+      "source": "core/testing-and-acceptance.md",
+      "target": "wiki/testing/sidebar-quote-acceptance.md",
+      "action": "update",
+      "reason": "补 U-20…U-31 / E-10…E-18 / AC-17…AC-30、子 frame 驱动方式与改写后的 .html 判据",
+      "conflict": "F01 的 E-04/AC-7 中 .html 判据被本 Feature 显式改写；已在测试权威文档中标注为唯一被改写的口径，历史结论保留在过程记录"
+    },
+    {
+      "source": "evidence/verification-record.md",
+      "target": "wiki/testing/sidebar-quote-acceptance.md",
+      "action": "update",
+      "reason": "验收结论、桥信任边界、停用空白期与残余风险并入测试权威文档第 7、8 节",
+      "conflict": "none"
+    },
+    {
+      "source": "evidence/workspace-validation.md",
+      "target": null,
+      "action": "skip",
+      "reason": "过程门禁记录：其耐久事实（revision 隔离、门禁通过）已由测试权威文档与当前决策覆盖",
+      "conflict": "none"
+    },
+    {
+      "source": "evidence/review-gate-record.md",
+      "target": null,
+      "action": "skip",
+      "reason": "过程证据：评审发现已被实现与文档吸收，长期文档不承载评审轮次记录",
+      "conflict": "none"
+    },
+    {
+      "source": "feasibility/summary.md",
+      "target": "wiki/product/product-vision.md",
+      "action": "skip",
+      "reason": "成立条件与负向影响已并入产品目标（接管边界、外部资源不加载、安全姿态）与架构边界（不透明 origin）",
+      "conflict": "none"
+    }
+  ],
+  "updated": {
+    "wiki/product/product-vision.md": "c78485a97f95d2bf3e639de3e637a31ebdf6f84d76fb00fe2012a85c4b3459ee",
+    "wiki/architecture/module-boundaries.md": "69ada602d59b42f9480957d41c6a7994d9c9de548e7503634f2bf8f074411faa",
+    "wiki/implementation/frontend/sidebar-quote-contract.md": "ef710a0f62537944d67d37b3010640aa70a612b46e1cc6c227acf8ab020393c2",
+    "wiki/implementation/frontend/sidebar-quote-implementation.md": "02ce170e057887bd70cb5a853afa140c73d6ed107b3553c9218f095b90009492",
+    "wiki/testing/sidebar-quote-acceptance.md": "542e257a1bb751c0fd91fd5a774f3043374a4322fec9e777be696c408cf64784",
+    "wiki/03-current-decisions.md": "aa9dd4fa1c12422696fffef35a3c840d06783076ef53afae62544eac29fe1e55",
+    "wiki/human/system-overview.md": "33e74b1a5410c4f6af0191db5d3dc587c7ea9845c22d9404d7062a8fdeb722fb"
+  },
+  "reconciledKnownDiscrepancies": [
+    "F01 的 E-04/AC-7 .html 判据改写为：接管关闭时无引用按钮、有接管开关（唯一被改写口径，已标注）",
+    "通知去重按实现口径统一为「按页目标去重」，不占用点击路径预算",
+    "接管注销不自动回落：已打开预览正文为空直到整页刷新（按实测口径写入，原设计假设作废）",
+    "平台设置项在文档中并列「开发者工具」与「显示代码工作视图」两种叫法",
+    "端口 3181 落在 Windows 保留段时以独立端口 34181 等价替代，原因写入测试权威文档"
+  ],
+  "validator": {
+    "script": "validate_llm_wiki.py",
+    "exitCode": 0,
+    "filesScanned": 44,
+    "filesExcluded": 37,
+    "linksChecked": 236,
+    "errorCount": 0,
+    "warningCount": 0,
+    "ok": true
+  },
+  "notes": [
+    "canonical 文档不含 I/F 编号，也不链接过程区。",
+    "跨能力集成验收结论作为事实写入测试权威文档，但不链接过程证据路径。"
+  ]
+}

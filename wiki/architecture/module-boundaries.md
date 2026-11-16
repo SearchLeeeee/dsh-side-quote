@@ -27,23 +27,28 @@
 
 | 服务 | 用途 |
 | --- | --- |
-| `slots` | 在受支持位点注册头部按钮组件 |
+| `slots` | 在受支持位点注册头部控件与 HTML 预览正文组件 |
 | `sidebarRight` | 读取屏幕上的会话（`mounted`）与按元素解析页目标（`focusedTarget`） |
 | `sessions` | 取得会话作用域（`scope`）与会话工作区根（用于来源路径相对化） |
 | `conversation` | `conversation.input.for(scope)` 的 `insertQuote` 与 `notify`，唯一的插入与通知通道 |
 | `locale` | 注册中英双语文案字典 |
-| `timer` | 受管定时器，用于按钮状态的防抖 |
+| `timer` | 受管定时器，用于按钮状态防抖与桥就绪超时 |
+| `documentPreviews` | 注册 / 注销 HTML 预览实现定义（接管时使用） |
+| `configForms` | 读取并订阅平台页面脚本闸门（`developerTools.enabled`），未到达时视为关闭 |
 
-以上服务全部只读使用；升级到新的 DSH 版本后必须回归。
+以上服务全部只读使用；升级到新的 DSH 版本后必须回归。Cordis 没有可选注入，因此
+`documentPreviews` 与 `configForms` 是插件的硬依赖。
 
 ## 4. 接入位点
 
 | 用途 | 位点 | 约束 |
 | --- | --- | --- |
-| 按钮渲染 | `sidebar.right.tab.document.actions`（`list`，`scope: session`） | 位点 owner props 只有 `absolutePath`；不假设存在 tabId/paneId |
+| 按钮渲染 | `sidebar.right.tab.document.actions`（`list`，`scope: session`） | 位点 owner props 只有 `absolutePath`；不假设存在 tabId/paneId。接管时额外占用两个独立 id：接管开关与 HTML 引用按钮变体 |
+| HTML 预览正文 | `sidebar.right.tab.document`（keyed，键为接管实现的 `id`） | 与 `documentPreviews.register` 的定义同生同灭；缺正文时平台渲染占位 |
 | 选区归属 | `ctx.sidebarRight.focusedTarget(element?)` | 以返回的页目标身份（含 `occurrence`）比较，跨窗格歧义时置灰 |
 | 当前会话 | `ctx.sidebarRight.mounted` | 决定插入目标；与选区所属会话不一致时置灰 |
 | 插入与通知 | `ctx.conversation.input.for(scope)` | 唯一通道；失败按失败路径处理，不回退到 `setDraft` |
+| 页面脚本闸门 | `ctx.configForms.developerTools.enabled`（快照 + 订阅） | 值未到达时为关闭（fail-closed），不得当作默认开启 |
 
 ## 5. 模块内分层
 
@@ -61,11 +66,29 @@
 
 ## 6. 数据边界
 
-- 唯一持久状态是插件内存里的「已引用记录」（键为会话 + 工作区相对路径，容量 500 条，
+- 引用侧唯一的运行状态是插件内存里的「已引用记录」（键为会话 + 工作区相对路径，容量 500 条，
   插件停用即清空，不写任何存储）。
+- 接管开关是浏览器侧偏好：`localStorage` 键 `dsh-side-quote:html-takeover`，值为 `on` 表示
+  开启；键缺失、值非法或存储不可用一律视为关闭。开关的读写失败不得抛到渲染层。
 - 不读写数据库、不做数据迁移、不写项目文件、不引入 Host 侧配置面。
 
-## 7. 安全与敏感边界
+## 7. 不透明 origin iframe 边界
+
+接管后的 HTML 预览运行在独立的不透明 origin 文档中，这是本插件唯一执行页面脚本的区域：
+
+- 载体是 `blob:` URL（不是 `srcDoc`，避免相对引用被解析到服务端口），iframe 属性固定为
+  `sandbox="allow-scripts"`，**不得**出现 `allow-same-origin`、`allow-forms`、`allow-popups`、
+  `allow-top-navigation`、`allow-modals`。
+- 父页面除桥以外不读取该文档：桥把选区文本单向 `postMessage` 给父页面，父页面只接收、
+  不向 iframe 发送任何宿主信息。
+- 父侧按「来源窗口引用全等 + `event.origin === 'null'` + 固定 channel/version + 合法 kind +
+  `text` 长度上限」四个条件校验报文，其余一律静默丢弃。
+- **信任边界（已接受，不写成「已验证安全」）**：页面脚本与桥同 realm，必然可以伪造选区上报，
+  令牌无法防范。页面拿不到引用按钮、`insertQuote`、会话作用域或任何宿主对象，插入仍需用户
+  在父页面点击；伪造的后果限于把同一文件内的文本放进用户自己待确认的输入框。
+- 页面字节按 UTF-8 严格解码；解码失败按渲染失败处理，不建立桥、不产生摘录。
+
+## 8. 安全与敏感边界
 
 - 引用会把文件内容与工作区相对路径送入会话并发送给模型，同时命中
   `local-machine-paths` 与 `credentials` 两个敏感类别；规则见
@@ -73,7 +96,7 @@
 - 证据、日志与提交信息不得出现真实机密；夹具只用合成占位值；端到端取证只在独立 profile
   与独立端口进行，不触碰用户正在使用的实例。
 
-## 8. 责任域
+## 9. 责任域
 
 owner 表只有 `core` 一个责任域，可执行内容全部落在 `code/`。不存在跨 owner 的契约
 边界，因此不引入额外域。

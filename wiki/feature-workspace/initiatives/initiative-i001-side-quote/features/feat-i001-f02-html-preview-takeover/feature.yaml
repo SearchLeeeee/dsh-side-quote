@@ -2,8 +2,8 @@ id: I001-F02
 title: HTML 预览接管适配（默认关闭、显式开启）
 leaf: true
 owner: core
-phase: ready-to-merge
-state: ready
+phase: merged
+state: completed
 wave: 2
 depends_on:
 - I001-F01
@@ -107,6 +107,3 @@ consistency_matrix:
     - core/quote-content-contract.md
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
-next_action:
-  skill: hl-initiative-merge
-  instruction: I001 的两个 Leaf 均已 ready-to-merge / ready；下一步运行 Initiative 集成验收

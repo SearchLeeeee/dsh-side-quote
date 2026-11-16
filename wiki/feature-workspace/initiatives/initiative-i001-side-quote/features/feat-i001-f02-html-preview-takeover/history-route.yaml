@@ -1,0 +1,146 @@
+schema_version: "1.0"
+status: retained-history
+authority: non-authoritative
+feature_id: I001-F02
+canonical_targets:
+  - implementation/frontend/sidebar-quote-implementation.md
+  - implementation/frontend/sidebar-quote-contract.md
+  - testing/sidebar-quote-acceptance.md
+  - product/product-vision.md
+  - architecture/module-boundaries.md
+routes:
+  - topic: HTML 接管为什么默认关闭且要跟平台脚本闸门联动
+    question_terms:
+      - HTML 预览为什么默认不可引用
+      - 接管什么时候生效
+      - 开发者工具关闭时接管怎么办
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+      - product/product-vision.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 4. 生效状态机
+      - path: discussion/workbench.md
+        headings:
+          - 开关与零差异（Q-01、Q-02、Q-09）
+  - topic: iframe 桥的载体与 sandbox 约束
+    question_terms:
+      - 接管页面跑在什么沙箱里
+      - 为什么用 blob 而不是 srcdoc
+      - 为什么不能加 allow-same-origin
+    canonical_targets:
+      - architecture/module-boundaries.md
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 5. iframe 桥
+  - topic: 桥报文校验的四个条件
+    question_terms:
+      - 父页面如何信任桥报文
+      - origin 为什么必须是 null
+      - 超长报文怎么处理
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+      - architecture/module-boundaries.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 5.3 协议与校验
+  - topic: 桥的信任边界与伪造面
+    question_terms:
+      - 页面能不能伪造选区
+      - 为什么没有消息令牌
+      - 伪造会带来什么后果
+    canonical_targets:
+      - architecture/module-boundaries.md
+      - testing/sidebar-quote-acceptance.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 5.5 信任边界（已确认）
+  - topic: 归属校验的 witness 分支
+    question_terms:
+      - iframe 里的选区怎么归属到 tab
+      - 为什么要区分有无 witness
+      - 无法消歧时怎么办
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 6. 归属与适配器接缝扩展
+  - topic: HTML 摘录保真的口径
+    question_terms:
+      - HTML 摘录保留源码缩进吗
+      - 渲染文本与源码的区别
+      - 行数怎么算
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 1. HTML 摘录的来源与保真口径（本 Feature 新增的唯一内容条款）
+  - topic: 白名单与接管的关系
+    question_terms:
+      - HTML 为什么仍不在白名单里
+      - HTML 的可引用性由什么决定
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 10. 与格式白名单的关系
+  - topic: 头部开关与引用按钮的显示条件
+    question_terms:
+      - 为什么 .md 没有接管开关
+      - HTML 引用按钮什么时候出现
+      - 切回自带渲染器后按钮为什么灰
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+      - product/product-vision.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 7. 头部控件
+  - topic: 接管开启与关闭的清理解除顺序
+    question_terms:
+      - 关掉接管会注销什么
+      - 停用插件后 iframe 与 blob 怎么回收
+      - 停用后预览为什么空白
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+      - product/product-vision.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 8. 生命周期与清理
+          - 9. 失败与降级行为
+  - topic: 接管开启时不加载相对资源的决策
+    question_terms:
+      - 为什么接管后样式和图片没了
+      - 相对资源读取被否决的理由
+    canonical_targets:
+      - product/product-vision.md
+      - architecture/module-boundaries.md
+    source_refs:
+      - path: discussion/workbench.md
+        headings:
+          - 渲染范围与降级（Q-06、Q-07、Q-08）
+  - topic: HTML 验收用例与子 frame 驱动方式
+    question_terms:
+      - HTML 引用怎么验收
+      - iframe 内怎么拖选取证
+      - 脚本合成选区算不算通过
+    canonical_targets:
+      - testing/sidebar-quote-acceptance.md
+    source_refs:
+      - path: core/testing-and-acceptance.md
+        headings:
+          - 3. 端到端必测用例
+          - 4.2 子 frame 选区的驱动方式
+      - path: evidence/verification-record.md
+        headings:
+          - 4. 端到端层（第 2 轮）
+          - 8. 未覆盖与残余风险
