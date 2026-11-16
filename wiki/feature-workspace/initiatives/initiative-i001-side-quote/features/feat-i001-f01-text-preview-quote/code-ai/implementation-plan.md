@@ -189,9 +189,26 @@
 | N-3/N-4 README 措辞与示例 | 修正遮罩关闭时机、改为 PowerShell 示例并指向验收环境文档 | `core` |
 | N-5 e2e 硬编码文案副本 | 经 `load-client.mjs` 从 `internals` 读取固定常量 | `core` |
 
+### 复审第 2 轮（对象 `df693c1..1d785da`）
+
+结论：**有条件通过**，无 Blocker / High；H-1 与 W-1、W-2、W-5…W-9、N-1、N-3…N-5 已确认
+修复。剩余项处置：
+
+| 发现 | 处置 | 责任人 |
+| --- | --- | --- |
+| W-4 `implementation.md` §8 两行与 AC-9 仍承诺已不可投递的 `error` | 已回写 §8 两行、§8.1 与 U-14、AC-9：置灰 + 竞态静默；不引入会话无关通知位点 | 编排者 |
+| W-3 E-05 未断言通知层级 | E-05 增加 `role === 'status'` 断言（info live region）并保持零 error 断言 | `core` |
+| W-11 §4.2 未登记新增环境变量，sidecar 的 profile 可为 `unspecified` | §4.2 补齐 `SIDE_QUOTE_E2E_EVIDENCE_DIR`（必需）/`PROFILE`（AC-12 身份）/`ALLOW_LIVE`（安全开关）；harness 在配置证据目录时要求 profile 非 `unspecified`，否则 skip | `core` + 编排者 |
+| AC-12 身份证据 | 改为"sidecar 显示 profile 为 `side-quote-verify` 且端口为非 `3081` 的独立端口" | 编排者 |
+| N-2 残留 `centerOf` | 删除；计划第 8 节 N-2 行以本轮实际清扫为准 | `core` |
+| N-6 工作台 C-27 与 U-17 相反 | 在 C-27 下加"后续口径"注记，指向内容契约与 U-17 | 编排者 |
+| N-7 `feature.yaml` 的 `next_action` 指向旧 revision | 由下一次生命周期转换重写 `next_action`，不在本轮手改 manifest | 编排者 |
+| N-8 `redactUrl` 仅去 query/fragment | 本版启动地址的 token 在 query 中，风险受控；若上游改为路径携带 token 需重评，登记为后续观察项 | 编排者 |
+
 ## 计划修订记录
 
 | 修订 | 日期 | 改动原因 | 受影响 items | 批准 |
 | --- | --- | --- | --- | --- |
 | 1 | 2026-11-15 | 初版：基于代码调研与 `0.2.2-rc.3` 位点取证建立 | 全部 | 主编排者 |
 | 2 | 2026-11-16 | 评审门有条件通过：新增 H-1 终点侧归属判定与 U-19/E-09，回写 W-1…W-9 的文档口径，登记 N-1…N-5 处置 | P5、P6、P8、P9 + 文档 | 主编排者 |
+| 3 | 2026-11-16 | 复审第 2 轮：回写 W-4 的通知通道口径与 AC-9/U-14，补 §4.2 环境变量与 AC-12 身份要求，E-05 增加层级断言，清理 N-2 残留 | P6、P9 + 文档 | 主编排者 |

@@ -100,8 +100,10 @@
 
 ### U-14 失败分支
 
-- `mounted` 为空 → 按钮置灰；强制触发点击 → 一条 `error` 通知，无插入。
-- `sessions.scope()` 返回 `undefined` → `error` 通知，无插入。
+- `mounted` 为空 → 按钮置灰；强制触发点击在 actions 层仍产生一条 `error`（注入的 `notify`
+  收到），但插件接线下该状态没有可投递通道，真实表现为静默（见 `implementation.md` §8.1）。
+- `sessions.scope()` 返回 `undefined` → 按钮置灰；强制点击在 actions 层产生一条 `error`，
+  接线同样无通道，真实表现为静默。
 - 选区仅空白 → 按钮置灰；强制点击 → `error` 通知。
 - `insertQuote` 返回 `false` → `error` 通知，未写记录，按钮恢复可用。
 - 适配器 `readSelection` 抛错 → `error` 通知，异常不外泄。
@@ -201,19 +203,24 @@
 
 | 变量 | 含义 | 未设置时 |
 | --- | --- | --- |
-| `SIDE_QUOTE_E2E_BASE_URL` | DSH 实例地址，默认 `http://127.0.0.1:3181` | 测试 `skip`，理由写明"未提供 DSH 实例" |
-| `SIDE_QUOTE_E2E_CDP` | 浏览器 CDP 端点 | 测试 `skip`，理由写明"未提供浏览器驱动" |
+| `SIDE_QUOTE_E2E_BASE_URL` | DSH 实例地址（含启动 token），默认 `http://127.0.0.1:3181` | 测试 `skip`，理由写明"未提供 DSH 实例" |
+| `SIDE_QUOTE_E2E_CDP` | 浏览器 CDP 端点，接受 `ws://…` 或 `http://host:port` | 测试 `skip`，理由写明"未提供浏览器驱动" |
+| `SIDE_QUOTE_E2E_EVIDENCE_DIR` | 截图与 sidecar 的写入目录（**验收时必需**） | 测试 `skip`，理由写明"未提供证据目录" |
+| `SIDE_QUOTE_E2E_PROFILE` | 所连实例的 profile 名；写入 sidecar，作为 AC-12 的隔离身份证据（必须为 `side-quote-verify`） | 已配置证据目录时 `skip`，理由写明缺少 profile 身份 |
+| `SIDE_QUOTE_E2E_ALLOW_LIVE` | 显式放行对 `3081` 运行（只在用户明确授权时设为 `1`） | 拒绝在 `3081` 上运行，理由写明"拒绝对 live 端口运行端到端用例" |
 
 规则：
 
 - `skip` **不等于**通过。验收记录必须把 skip 明确写成"未执行"，不得计为 PASS。
+- 端口不得为 `3081`（用户 live 实例），除非另有明确授权并设置 `ALLOW_LIVE=1`；默认硬拒绝。
 - 夹具（含名为 `.env` 的文件）一律在测试运行时生成到临时目录；仓库内不得出现名为
   `.env` 的文件（仓库硬性禁止提交 `.env`）。浏览器层因 Files 页隐藏 `.` 开头项而改用
   等价敏感名夹具（见 E-05 的环境例外），该替换不影响"敏感名不拦截"的规则本身。
 - 截图与断言输出写入 Feature 证据目录
   `wiki/feature-workspace/initiatives/initiative-i001-side-quote/features/feat-i001-f01-text-preview-quote/evidence/`，
-  文件名带用例编号与序号。
-- 每条截图证据必须能对应：Git revision、实例地址与端口、视口尺寸、用例编号。
+  文件名带用例编号与序号；每张截图配同名 `.json` sidecar。
+- 每条截图证据必须能对应：Git revision、实例地址与端口、profile、视口尺寸、用例编号。
+  启动地址里的 `?token=…` 不得进入证据（sidecar 只记录 origin + path + port）。
 
 ### 4.3 人工回归（其他格式零影响）
 
@@ -234,10 +241,10 @@
 | AC-6 | 敏感文件名命中时原样插入且只有一条 `info` | U-11、E-05 |
 | AC-7 | 格式白名单命中/不命中如约，HTML 不出现按钮 | U-10、E-04 |
 | AC-8 | 按钮可用性由同预览体非空白选区决定（锚点与终点同属该预览体）；防抖与点击去重如约 | U-12、U-13、U-19、E-06、E-09 |
-| AC-9 | 三条失败路径均只发 `error` 且不插入 | U-14 |
+| AC-9 | 可点击的失败分支在 actions 层各只发一条 `error` 且不插入；无屏幕会话 / 无保留作用域在接线下表现为置灰 + 竞态静默（`implementation.md` §8.1） | U-14 |
 | AC-10 | 插件停用后监听、定时器、订阅、注册全部释放 | U-15、E-08 |
 | AC-11 | 零构建与零运行时依赖：`dependencies` 为空、制品 `files` 不含 `test`、两条 `node --check` 通过 | 命令表 `lint` |
-| AC-12 | 未触碰 live 环境：证据显示实例为 `side-quote-verify` + 独立端口（非 `3081`；`3181` 被系统保留区间排除时用 §4.1 记录的等价端口），未终止 `3081` | 证据记录 |
+| AC-12 | 未触碰 live 环境：证据（截图 sidecar）显示 profile 为 `side-quote-verify`、端口为独立端口（非 `3081`；`3181` 被系统保留区间排除时用 §4.1 记录的等价端口），且未终止 `3081` | 证据记录 |
 | AC-13 | 其他格式零影响：E-04 逐格式通过并留档 | E-04 |
 | AC-14 | 中英字典键齐全；内容文案不在字典中 | U-17 |
 | AC-15 | F02 只需新增适配器：假适配器用例通过 | U-16 |
