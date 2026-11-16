@@ -1,0 +1,8 @@
+{
+  "activationPath": "mouse",
+  "secondDelta": "\n \npage.html\nsamples/page.html 已引用过\n 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+  "pointerCardText": "a.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 已引用过\n 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。\n \nb.md\nnotes/b.md 1 行\n different document body\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage-csp.html\nsamples/page-csp.html 1 行\n The page blocks its own scripts with a m\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 已引用过\n 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+  "hasPointerLabel": true,
+  "hasSourceLabel": false,
+  "excerptRepeated": false
+}

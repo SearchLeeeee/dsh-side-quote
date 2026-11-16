@@ -1,0 +1,19 @@
+{
+  "activationPath": "mouse",
+  "delta": "\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy",
+  "composerDom": [
+    {
+      "text": "a.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 已引用过\n 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。\n \nb.md\nnotes/b.md 1 行\n different document body\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage-csp.html\nsamples/page-csp.html 1 行\n The page blocks its own scripts with a m\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n ",
+      "nodes": [
+        {
+          "kind": 1,
+          "name": "P",
+          "text": "a.mdnotes/a.md 1 行 quick brown fox a.mdnotes/a.md 1 行 quick brown fox a.mdnotes/a.md 已引用过 已引用过：notes/a.md\n原文未重复贴出；需要时请重新读取该文件。 b.mdnotes/b.md 1 行 different document body page.htmlsamples/page.html 1 行",
+          "role": "P"
+        }
+      ],
+      "html": "csp.html 1 行</span> <span class=\"_inlineBody_d98g2_34\">The page blocks its own scripts with a m</span></span></span></span></span><span data-lexical-text=\"true\"> </span><span data-composer-quote=\"\" contenteditable=\"false\" data-lexical-decorator=\"true\"><span class=\"_root_l6gf9_3 _inline_l6gf9_78\"><span class=\"_quote_d98g2_1\" data-quote-preview=\"\" data-removable=\"\"><button type=\"button\" class=\"_remove_d98g2_78\" aria-label=\"移除引用\"><svg width=\"16\" height=\"16\" class=\"_quoteMark_d98g2_102\" viewBox=\"0 0 16 16\" fill=\"none\" aria-hidden=\"true\"><g transform=\"translate(6.8 2.4)\"><path d=\"M2.8125 0.583008L3.2002 1.16602C2.43912 1.6713 1.88491 2.41238 1.60547 3.25684H2.98926V6.70605H0V4.52148C1.96593e-05 2.70313 0.9109 1.00575 2.42578 0L2.8125 0.583008Z\" fill=\"currentColor\"></path><path d=\"M7.50781 0.583008L7.89551 1.16602C7.13443 1.6713 6.58022 2.41238 6.30078 3.25684H7.68457V6.70605H4.69531V4.52148C4.69533 2.70313 5.60621 1.00575 7.12109 0L7.50781 0.583008Z\" fill=\"currentColor\"></path></g></svg><svg width=\"12\" height=\"12\" class=\"_closeMark_d98g2_103\" data-icon=\"dsw-icon-close-outline-regular\" aria-hidden=\"true\"><use href=\"#dsw-icon-close-outline-regular\"></use></svg></button><span class=\"_source_d98g2_62\" data-quote-preview-text=\"\"><span aria-hidden=\"true\">page.html</span><span class=\"_visuallyHidden_d98g2_25\">samples/page.html 1 行</span> <span class=\"_inlineBody_d98g2_34\">The quick brown fox jumps over the lazy</span></span></span></span></span><span data-lexical-text=\"true\"> </span></p>"
+    }
+  ],
+  "selectionText": "The quick brown fox jumps over the lazy "
+}

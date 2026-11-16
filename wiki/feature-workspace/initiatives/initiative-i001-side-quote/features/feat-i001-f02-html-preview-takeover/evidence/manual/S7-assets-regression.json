@@ -1,0 +1,41 @@
+{
+  "requestsDuringLoad": [
+    "http://127.0.0.1:34181/open-in-app/icon/explorer",
+    "http://127.0.0.1:34181/api/workspaceFiles/list",
+    "http://127.0.0.1:34181/api/workspaceFiles/list",
+    "http://127.0.0.1:34181/api/workspaceFiles/readBytes",
+    "http://127.0.0.1:34181/api/workspaceFiles/stat",
+    "http://127.0.0.1:34181/api/session/workspacePathApplications",
+    "blob:http://127.0.0.1:34181/26e0ea1a-bcfa-4b93-bf99-213e78754a72",
+    "blob:http://127.0.0.1:34181/f2c021c9-d469-4242-a20d-d99680fa0341"
+  ],
+  "relativeRequests": [],
+  "portRequests": [],
+  "frameFacts": {
+    "title": "外部资源样例页",
+    "paragraph": "Relative assets must never load under the takeover while this text stays selectable.",
+    "bodyBackground": "rgba(0, 0, 0, 0)",
+    "paragraphColor": "rgb(0, 0, 0)",
+    "paragraphFont": "\"Noto Sans SC\"",
+    "resources": [],
+    "images": [
+      {
+        "src": "extra.png",
+        "complete": true,
+        "width": 0
+      }
+    ],
+    "cssRules": [],
+    "scriptTags": 2
+  },
+  "selectable": {
+    "quoteButton": {
+      "present": true,
+      "pressed": null,
+      "disabled": false,
+      "hint": "把预览中选中的文字引用到当前会话 | 引用",
+      "text": "引用"
+    },
+    "selected": "Relative assets must never load under th"
+  }
+}

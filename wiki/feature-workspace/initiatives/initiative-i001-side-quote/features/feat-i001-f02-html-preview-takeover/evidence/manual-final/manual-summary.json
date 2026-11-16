@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "id": "manual-page",
+      "status": "pass"
+    },
+    {
+      "id": "manual-assets",
+      "status": "pass"
+    },
+    {
+      "id": "manual-csp",
+      "status": "pass"
+    }
+  ],
+  "consoleErrors": []
+}

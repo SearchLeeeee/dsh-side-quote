@@ -259,9 +259,26 @@
 | N-5 文案称"开发者工具"，平台设置项标签为"显示代码工作视图" | **登记为后续措辞项**：平台标签可变，本版不把平台标签写进插件文案，README 已并列两种叫法 | 编排者 |
 | N-6 去重键实现为"仅页目标"，workbench C-16 与本计划 §2.2-8 写"原因 + 页目标" | 实现更严格且与 `core/implementation.md` §9 一致；**合并长期文档时按实现口径统一措辞**，不回改 workbench 历史记录 | 编排者 |
 
+## 9. 验证阶段发现与处置（修订 3）
+
+独立验证 session 的第一轮判定为**有条件通过**：产品行为满足 AC-17…AC-30（由其自建的独立
+驱动取证），但提交版 `E-10`…`E-18` 因测试层缺陷全部不可执行。处置如下；产品代码
+`code/client.js`、`code/index.js`、`code/package.json` 未因本轮改动。
+
+| 发现 | 性质 | 处置 | 责任人 |
+| --- | --- | --- | --- |
+| H1 设置页导航找不到触发器（本机「设置」在账号菜单 `menuitem` 中） | 测试层 | `cdp.mjs` 新增 `openSettingsDialog`（先试 shell 触发器，再走账号菜单菜单项），`openSettingsGeneral` 委托它；E-11…E-18 恢复可达（`d4f6eab`） | `core` |
+| H2 停用插件后自带正文需整页刷新才回归，用例只重挂 tab | 测试层 | 新增 `reloadAndReopenPreview` + `ensureRightSidebar`；E-10 停用阶段先断言标记消失/无 console error 再刷新取基线，裁剪区用 `deepEqual` 强制同一区域（`d4f6eab`） | `core` |
+| H3 isolated world 读 `location.origin` 对自带 frame 也返回 URL origin | 测试层 | 改为父页面侧记录桥报文并断言 `origin === 'null'`、`source === frame.contentWindow`、`version === 1`、至少一条 `ready`（`d4f6eab`） | `core` |
+| H4 composer 渲染的是引用卡片，旧断言按 Markdown 文本解析 | 测试层 | `readComposerQuotes` 读 `data-composer-quote` / `data-quote-preview-text`，保留"卡片正文 = iframe 实际选区逐字一致"（`d4f6eab`） | `core` |
+| R-1 提交版 e2e 不可用 | 测试层 | 同 H1…H4；修复后登记命令实测 17/17 通过、0 skip（多轮复跑一致） | `core` |
+| R-2 接管开启时停用插件，已打开的 HTML 预览正文空白直到刷新 | 平台边界（产品不可控） | 不改产品代码；`code/README.md` 已知取舍新增第 10 条、`core/implementation.md` §9 补同一事实；E-18 把该现象写成事实文件而非通过断言，刷新后断言自带正文回归。**不写成缺陷、不写成"已修好"** | 编排者 + `core` |
+| C-21 的"注销后 `selected` 自动回落到自带"假设 | 设计假设失效 | 以上述 R-2 事实为准；长期 Wiki 合并时按实测口径改写，不回改 workbench 历史记录 | 编排者 |
+
 ## 计划修订记录
 
 | 修订 | 日期 | 改动原因 | 受影响 items | 批准 |
 | --- | --- | --- | --- | --- |
 | 1 | 2026-11-16 | 初版：基于 F02 领域文档、F01 代码基线与 `0.2.2-rc.3` 平台取证建立；纳入 10 项实现层裁决（§2.2） | 全部 | 主编排者 |
 | 2 | 2026-11-16 | 评审门有条件通过：登记 H-1 与 W-1…W-5、N-1…N-6 的处置（§8），把 e2e 串行约束落到命令表，W-4/N-5/N-6 按"不改写历史 + 合并时统一"登记 | P7、P8、P9 + 配置与文档 | 主编排者 |
+| 3 | 2026-11-16 | 验证第一轮有条件通过：登记 H1…H4（测试层）与 R-1、R-2、C-21 的处置（§9）；测试层修复后 e2e 17/17 | P2、P9 | 主编排者 |

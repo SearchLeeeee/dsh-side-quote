@@ -1,0 +1,284 @@
+{
+  "results": [
+    {
+      "id": "AC-17",
+      "status": "pass",
+      "detail": {
+        "phaseA": {
+          "toggle": {
+            "present": true,
+            "pressed": false,
+            "disabled": false,
+            "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+            "text": "接管 HTML 预览"
+          },
+          "quoteButton": {
+            "present": false,
+            "pressed": null,
+            "disabled": null,
+            "hint": "",
+            "text": ""
+          },
+          "body": {
+            "takeover": [],
+            "builtin": [
+              {
+                "sandbox": "allow-scripts",
+                "src": "blob:http://127.0.0.1:34181/f9ccf4d9-c9be-4983-8cdb-9532a5d3cca2",
+                "srcdoc": false
+              }
+            ],
+            "body": 0
+          },
+          "rect": {
+            "found": true,
+            "source": "builtin",
+            "x": 793,
+            "y": 76,
+            "width": 647,
+            "height": 824
+          },
+          "sandbox": "allow-scripts"
+        },
+        "phaseB": {
+          "toggle": {
+            "present": false,
+            "pressed": null,
+            "disabled": null,
+            "hint": "",
+            "text": ""
+          },
+          "quoteButton": {
+            "present": false,
+            "pressed": null,
+            "disabled": null,
+            "hint": "",
+            "text": ""
+          },
+          "body": {
+            "takeover": [],
+            "builtin": [
+              {
+                "sandbox": "allow-scripts",
+                "src": "blob:http://127.0.0.1:34181/944e2840-ae82-464b-b6b4-af4b57a4df42",
+                "srcdoc": false
+              }
+            ],
+            "body": 0
+          },
+          "rect": {
+            "found": true,
+            "source": "builtin",
+            "x": 793,
+            "y": 76,
+            "width": 647,
+            "height": 824
+          },
+          "sandbox": "allow-scripts"
+        },
+        "sameClip": true,
+        "sha256A": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+        "sha256B": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+        "bytesA": 22517,
+        "bytesB": 22517,
+        "identical": true
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\R1-1-body-takeover-closed.png",
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\R1-2-body-plugin-disabled.png"
+      ]
+    },
+    {
+      "id": "AC-24",
+      "status": "pass",
+      "detail": {
+        "captured": [
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          },
+          {
+            "origin": "null",
+            "fromFrame": true,
+            "channel": "dsh-side-quote/html-bridge",
+            "kind": "selection"
+          }
+        ],
+        "quoteButton": {
+          "present": true,
+          "pressed": null,
+          "disabled": false,
+          "hint": "把预览中选中的文字引用到当前会话 | 引用",
+          "text": "引用"
+        },
+        "acceptedByBridge": true
+      },
+      "files": []
+    },
+    {
+      "id": "manual-assets",
+      "status": "pass",
+      "detail": {
+        "requestsDuringLoad": [
+          "http://127.0.0.1:34181/api/session/workspacePathApplications",
+          "http://127.0.0.1:34181/api/workspaceFiles/readBytes",
+          "blob:http://127.0.0.1:34181/ec3b5465-84c6-4256-a9a2-b1b09c59ebe9"
+        ],
+        "relativeRequests": [],
+        "cssInjected": false,
+        "scriptRan": false,
+        "imageLoaded": false,
+        "facts": {
+          "extraLoadedFlag": null,
+          "bodyBackground": "rgba(0, 0, 0, 0)",
+          "paragraphColor": "rgb(0, 0, 0)",
+          "images": [
+            {
+              "src": "extra.png",
+              "complete": true,
+              "naturalWidth": 0
+            }
+          ],
+          "resources": [],
+          "paragraphText": "Relative assets must never load under the takeover while this text stays selectable.",
+          "heading": "外部资源样例页"
+        },
+        "selectable": {
+          "quoteButton": {
+            "present": true,
+            "pressed": null,
+            "disabled": false,
+            "hint": "把预览中选中的文字引用到当前会话 | 引用",
+            "text": "引用"
+          },
+          "selected": "Relative assets must never load under th"
+        }
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\R3-1-assets-page.png"
+      ]
+    },
+    {
+      "id": "manual-csp",
+      "status": "pass",
+      "detail": {
+        "csp": {
+          "metaPresent": true,
+          "metaContent": "script-src 'none'",
+          "heading": "受 CSP 限制的样例页",
+          "paragraphs": [
+            "The page blocks its own scripts with a meta CSP while still rendering selectable text.",
+            "Second CSP paragraph keeps the selection target long enough for a real drag."
+          ],
+          "scriptCount": 1
+        },
+        "selectable": {
+          "quoteButton": {
+            "present": true,
+            "pressed": null,
+            "disabled": false,
+            "hint": "把预览中选中的文字引用到当前会话 | 引用",
+            "text": "引用"
+          },
+          "selected": "The page blocks its own scripts with a m"
+        }
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\R4-1-csp-page.png"
+      ]
+    }
+  ],
+  "consoleErrors": []
+}

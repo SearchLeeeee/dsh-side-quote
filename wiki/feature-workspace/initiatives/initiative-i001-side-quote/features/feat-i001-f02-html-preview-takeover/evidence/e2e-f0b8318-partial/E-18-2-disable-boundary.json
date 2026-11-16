@@ -1,0 +1,22 @@
+{
+  "case": "E-18",
+  "takeoverSrc": "blob:http://127.0.0.1:34181/b122121e-ff37-475a-b18a-93459c6c0449",
+  "bodyAfterDisable": {
+    "takeover": [],
+    "builtin": [],
+    "body": 0
+  },
+  "bodyAfterReload": {
+    "takeover": [],
+    "builtin": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/a5b05973-b766-459d-855a-19e79bb03d3b",
+        "srcdoc": false
+      }
+    ],
+    "body": 0
+  },
+  "note": "An open preview tab keeps an empty body after the plugin is disabled; a full page reload lets the built-in renderer own the path again. Recorded as a known boundary, not a defect fixed by this Feature.",
+  "capturedAt": "2026-11-16T10:34:12.495Z"
+}

@@ -1,0 +1,14 @@
+{
+  "case": "E-04-docx",
+  "gitRevision": "f0b83189bbece3d49039599498dfd0d995e334fb",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T10:31:58.591Z",
+  "takeover": "unavailable",
+  "selectionDrive": null,
+  "iframeSandbox": null,
+  "developerTools": null,
+  "clip": null
+}

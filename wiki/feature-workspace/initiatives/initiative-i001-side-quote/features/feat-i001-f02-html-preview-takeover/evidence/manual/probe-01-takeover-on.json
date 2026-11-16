@@ -1,0 +1,20 @@
+{
+  "toggle": {
+    "present": true,
+    "pressed": true,
+    "disabled": false,
+    "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+    "text": "接管 HTML 预览"
+  },
+  "body": {
+    "takeover": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/39d5e7e2-0b03-4e9c-86e4-0bec3ac3a852",
+        "srcdoc": false
+      }
+    ],
+    "builtin": [],
+    "body": 1
+  }
+}

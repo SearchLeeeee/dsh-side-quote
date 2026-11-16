@@ -1,0 +1,326 @@
+{
+  "results": [
+    {
+      "id": "AC-17",
+      "status": "fail",
+      "detail": {
+        "closedToggle": {
+          "present": true,
+          "pressed": false,
+          "disabled": false,
+          "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+          "text": "接管 HTML 预览"
+        },
+        "closedQuote": {
+          "present": false,
+          "pressed": null,
+          "disabled": null,
+          "hint": "",
+          "text": ""
+        },
+        "takeoverBodyStateA2": {
+          "takeover": [],
+          "builtin": [
+            {
+              "sandbox": "allow-scripts",
+              "src": "blob:http://127.0.0.1:34181/bd6b9259-8554-470c-b725-a0f1fe59dbe3",
+              "srcdoc": false
+            }
+          ],
+          "body": 0
+        },
+        "sandboxA": "allow-scripts",
+        "reopenedSidebar": false,
+        "blocked": "no element matches [data-html-preview] within 20000ms",
+        "stateAfterDisable": {
+          "takeover": [],
+          "builtin": [],
+          "body": 0
+        },
+        "sandboxB": null,
+        "rectA": {
+          "found": true,
+          "source": "builtin",
+          "x": 793,
+          "y": 76,
+          "width": 647,
+          "height": 824
+        },
+        "rectB": {
+          "found": false
+        },
+        "sha256A": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+        "sha256B": null,
+        "identical": null
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S1-1-body-takeover-closed.png",
+        null
+      ]
+    },
+    {
+      "id": "AC-26",
+      "status": "pass",
+      "detail": {
+        "togglePath": "mouse",
+        "sandboxTokens": [
+          "allow-scripts"
+        ],
+        "takeoverCount": 1,
+        "builtinCount": 0,
+        "quoteButton": {
+          "present": true,
+          "pressed": null,
+          "disabled": true,
+          "hint": "把预览中选中的文字引用到当前会话 | 引用",
+          "text": "引用"
+        },
+        "noticesAdded": [
+          {
+            "role": "status",
+            "text": "已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。"
+          }
+        ],
+        "noticesSettled": [
+          {
+            "role": "status",
+            "text": "已接管 HTML 预览：可在预览内划词引用；外部 CSS/JS/图片不会加载。"
+          }
+        ],
+        "consoleErrors": []
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S2-1-takeover-on.png"
+      ]
+    },
+    {
+      "id": "AC-19",
+      "status": "pass",
+      "detail": {
+        "activationPath": "mouse",
+        "excerptOk": true,
+        "pathOk": true,
+        "noPointer": true,
+        "delta": "\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy"
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S3-1-first-quote.png"
+      ]
+    },
+    {
+      "id": "AC-21",
+      "status": "pass",
+      "detail": {
+        "hiddenTitle": "samples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "visibleLabel": "page.html",
+        "delta": "\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy"
+      }
+    },
+    {
+      "id": "AC-29",
+      "status": "pass",
+      "detail": {
+        "excerptText": "The quick brown fox jumps over the lazy",
+        "cardText": "page.htmlsamples/page.html 1 行 The quick brown fox jumps over the lazy"
+      }
+    },
+    {
+      "id": "AC-20",
+      "status": "pass",
+      "detail": {
+        "activationPath": "mouse",
+        "secondDelta": "\n \npage.html\nsamples/page.html 已引用过\n 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+        "pointerCardText": "a.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 已引用过\n 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。\n \nb.md\nnotes/b.md 1 行\n different document body\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage-csp.html\nsamples/page-csp.html 1 行\n The page blocks its own scripts with a m\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 已引用过\n 已引用过：samples/page.html 原文未重复贴出；需要时请重新读取该文件。",
+        "hasPointerLabel": true,
+        "hasSourceLabel": false,
+        "excerptRepeated": false
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S3-2-second-pointer.png"
+      ]
+    },
+    {
+      "id": "AC-25",
+      "status": "pass",
+      "detail": {
+        "csp": true,
+        "gateClosedPath": "see AC-25 gate flip below"
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S4-1-csp-quote.png"
+      ]
+    },
+    {
+      "id": "AC-25-gate-flip",
+      "status": "pass",
+      "detail": {
+        "beforeTakeoverCount": 1,
+        "gateClosed": {
+          "takeover": 0,
+          "builtin": 1,
+          "toggle": {
+            "present": true,
+            "pressed": true,
+            "disabled": true,
+            "hint": "需要先开启「开发者工具」（页面脚本）才能接管预览。 | 接管 HTML 预览 | 需要先开启「开发者工具」（页面脚本）才能接管预览。",
+            "text": "接管 HTML 预览 需要先开启「开发者工具」（页面脚本）才能接管预览。"
+          }
+        },
+        "gateReopened": {
+          "takeover": 1,
+          "builtin": 0,
+          "toggle": {
+            "present": true,
+            "pressed": true,
+            "disabled": false,
+            "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+            "text": "接管 HTML 预览"
+          }
+        }
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S5-1-gate-flip.png"
+      ]
+    },
+    {
+      "id": "AC-27-disabled",
+      "status": "pass",
+      "detail": {
+        "beforeTakeoverCount": 1,
+        "sidebarReopened": false,
+        "afterBody": {
+          "takeover": [],
+          "builtin": [],
+          "body": 0
+        },
+        "toggle": {
+          "present": false,
+          "pressed": null,
+          "disabled": null,
+          "hint": "",
+          "text": ""
+        },
+        "quote": {
+          "present": false,
+          "pressed": null,
+          "disabled": null,
+          "hint": "",
+          "text": ""
+        },
+        "selectionAfterDisable": null,
+        "consoleErrors": []
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S6-1-plugin-disabled.png"
+      ]
+    },
+    {
+      "id": "AC-28",
+      "status": "pass",
+      "detail": {
+        "port": "34181",
+        "profile": "side-quote-verify"
+      }
+    },
+    {
+      "id": "manual-assets",
+      "status": "fail",
+      "detail": {
+        "requestsDuringLoad": [
+          "http://127.0.0.1:34181/open-in-app/icon/explorer",
+          "http://127.0.0.1:34181/api/workspaceFiles/list",
+          "http://127.0.0.1:34181/api/workspaceFiles/list",
+          "http://127.0.0.1:34181/api/workspaceFiles/readBytes",
+          "http://127.0.0.1:34181/api/workspaceFiles/stat",
+          "http://127.0.0.1:34181/api/session/workspacePathApplications",
+          "blob:http://127.0.0.1:34181/26e0ea1a-bcfa-4b93-bf99-213e78754a72",
+          "blob:http://127.0.0.1:34181/f2c021c9-d469-4242-a20d-d99680fa0341"
+        ],
+        "relativeRequests": [],
+        "portRequests": [],
+        "frameFacts": {
+          "title": "外部资源样例页",
+          "paragraph": "Relative assets must never load under the takeover while this text stays selectable.",
+          "bodyBackground": "rgba(0, 0, 0, 0)",
+          "paragraphColor": "rgb(0, 0, 0)",
+          "paragraphFont": "\"Noto Sans SC\"",
+          "resources": [],
+          "images": [
+            {
+              "src": "extra.png",
+              "complete": true,
+              "width": 0
+            }
+          ],
+          "cssRules": [],
+          "scriptTags": 2
+        },
+        "selectable": {
+          "quoteButton": {
+            "present": true,
+            "pressed": null,
+            "disabled": false,
+            "hint": "把预览中选中的文字引用到当前会话 | 引用",
+            "text": "引用"
+          },
+          "selected": "Relative assets must never load under th"
+        }
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S7-1-assets-page.png"
+      ]
+    },
+    {
+      "id": "manual-page",
+      "status": "pass",
+      "detail": {
+        "sandboxBuiltin": "allow-scripts",
+        "sandboxTakeover": "allow-scripts",
+        "readability": {
+          "heading": "接管验收样例页",
+          "paragraphs": [
+            "The quick brown fox jumps over the lazy dog while the harness records the rendered text.",
+            "Second paragraph with inline bold text and a trailing sentence for selection."
+          ],
+          "listItems": [
+            "Alpha bullet item rendered by the page",
+            "Beta bullet item rendered by the page"
+          ],
+          "bodyColor": "rgb(0, 0, 0)",
+          "fontSize": "16px"
+        },
+        "selectable": {
+          "quoteButton": {
+            "present": true,
+            "pressed": null,
+            "disabled": false,
+            "hint": "把预览中选中的文字引用到当前会话 | 引用",
+            "text": "引用"
+          },
+          "selected": "The quick brown fox jumps over the lazy"
+        },
+        "rectBuiltin": {
+          "found": true,
+          "source": "builtin",
+          "x": 793,
+          "y": 76,
+          "width": 647,
+          "height": 824
+        },
+        "rectTakeover": {
+          "found": true,
+          "source": "takeover",
+          "x": 793,
+          "y": 76,
+          "width": 647,
+          "height": 824
+        }
+      },
+      "files": [
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S8-1-page-builtin.png",
+        "D:\\dsh-side-quote\\wiki\\feature-workspace\\initiatives\\initiative-i001-side-quote\\features\\feat-i001-f02-html-preview-takeover\\evidence\\e2e-independent\\S8-2-page-takeover.png"
+      ]
+    }
+  ],
+  "consoleErrors": []
+}

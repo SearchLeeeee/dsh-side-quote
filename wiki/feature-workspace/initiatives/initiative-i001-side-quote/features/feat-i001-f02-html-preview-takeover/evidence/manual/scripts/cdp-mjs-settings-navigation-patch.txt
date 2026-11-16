@@ -1,0 +1,24 @@
+.trigger)};
+    return [...document.querySelectorAll('[aria-label]')]
+      .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
+  })()`
+  // This build (DSH 0.2.2-rc.3 as installed) exposes Settings as a `menuitem`
+  // inside the account menu, not as an aria-labelled shell trigger. Try the
+  // shell label first and fall back to the account menu. [verification patch]
+  if ((await page.evaluate(`(() => ${trigger} !== null)()`)) !== true) {
+    const account = `(() => {
+      const wanted = ['账号菜单', 'Account menu', 'Account'];
+      return [...document.querySelectorAll('[aria-label]')]
+        .find((element) => wanted.includes((element.getAttribute('aria-label') || '').trim())) || null;
+    })()`
+    await page.waitFor(`(() => ${account} !== null)()`, { timeoutMs, label: 'the account menu trigger' })
+    await activate(page, account, 'the account menu trigger')
+    const item = `(() => {
+      const wanted = ${JSON.stringify(SETTINGS_COPY.trigger)};
+      return [...document.querySelectorAll('[role="menuitem"]')]
+        .find((element) => {
+          const text = (element.textContent || '').replace(/\\s+/gu, ' ').trim();
+          return wanted.some((label) => text.startsWith(label));
+        }) || null;
+    })()`
+    await page.waitFor(`(() => ${item} !== null)()`, { timeoutMs, label: 'the settings menu item' 

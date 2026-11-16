@@ -1,0 +1,32 @@
+{
+  "sandbox": "allow-scripts",
+  "selected": "The page blocks its own scripts with a m",
+  "delta": "",
+  "card": {
+    "innerText": "page-csp.html samples/page-csp.html 1 行 The page blocks its own scripts with a m",
+    "textContent": "page-csp.htmlsamples/page-csp.html 1 行 The page blocks its own scripts with a m",
+    "leaves": [
+      {
+        "cls": "",
+        "ariaHidden": "true",
+        "text": "page-csp.html"
+      },
+      {
+        "cls": "_visuallyHidden_d98g2_25",
+        "ariaHidden": null,
+        "text": "samples/page-csp.html 1 行"
+      },
+      {
+        "cls": "_inlineBody_d98g2_34",
+        "ariaHidden": null,
+        "text": "The page blocks its own scripts with a m"
+      }
+    ],
+    "removeLabel": "移除引用"
+  },
+  "noticesAdded": [],
+  "excerptOk": true,
+  "pathOk": true,
+  "errors": [],
+  "before": 0
+}

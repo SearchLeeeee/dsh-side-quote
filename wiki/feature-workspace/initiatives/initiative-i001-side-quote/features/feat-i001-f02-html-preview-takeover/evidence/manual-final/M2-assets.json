@@ -1,0 +1,18 @@
+{
+  "requests": [
+    "http://127.0.0.1:34181/api/session/workspacePathApplications",
+    "http://127.0.0.1:34181/api/workspaceFiles/readBytes",
+    "blob:http://127.0.0.1:34181/511b9a53-a789-4226-91e8-10bb197bf64f"
+  ],
+  "relativeRequests": [],
+  "selectable": {
+    "assetsButton": {
+      "present": true,
+      "pressed": null,
+      "disabled": false,
+      "hint": "把预览中选中的文字引用到当前会话 | 引用",
+      "text": "引用"
+    },
+    "assetsSelected": "HTML assets preview fixture"
+  }
+}

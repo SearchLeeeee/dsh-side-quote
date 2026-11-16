@@ -1,0 +1,25 @@
+{
+  "beforeTakeoverCount": 1,
+  "sidebarReopened": false,
+  "afterBody": {
+    "takeover": [],
+    "builtin": [],
+    "body": 0
+  },
+  "toggle": {
+    "present": false,
+    "pressed": null,
+    "disabled": null,
+    "hint": "",
+    "text": ""
+  },
+  "quote": {
+    "present": false,
+    "pressed": null,
+    "disabled": null,
+    "hint": "",
+    "text": ""
+  },
+  "selectionAfterDisable": null,
+  "consoleErrors": []
+}

@@ -1,0 +1,17 @@
+{
+  "target": {
+    "text": "The quick brown fox jumps over the lazy ",
+    "lines": 1
+  },
+  "button": {
+    "present": true,
+    "pressed": null,
+    "disabled": false,
+    "hint": "把预览中选中的文字引用到当前会话 | 引用",
+    "text": "引用"
+  },
+  "frameSelection": {
+    "sandbox": "allow-scripts",
+    "src": "blob:http://127.0.0.1:34"
+  }
+}

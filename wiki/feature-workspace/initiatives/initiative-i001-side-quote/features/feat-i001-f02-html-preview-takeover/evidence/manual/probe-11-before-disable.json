@@ -1,0 +1,20 @@
+{
+  "onState": {
+    "takeover": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/f9aec704-5334-4799-818c-8052b0364f89",
+        "srcdoc": false
+      }
+    ],
+    "builtin": [],
+    "body": 1
+  },
+  "toggle": {
+    "present": true,
+    "pressed": true,
+    "disabled": false,
+    "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+    "text": "接管 HTML 预览"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "captured": [
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    },
+    {
+      "origin": "null",
+      "fromFrame": true,
+      "channel": "dsh-side-quote/html-bridge",
+      "kind": "selection"
+    }
+  ],
+  "quoteButton": {
+    "present": true,
+    "pressed": null,
+    "disabled": false,
+    "hint": "把预览中选中的文字引用到当前会话 | 引用",
+    "text": "引用"
+  },
+  "acceptedByBridge": true
+}

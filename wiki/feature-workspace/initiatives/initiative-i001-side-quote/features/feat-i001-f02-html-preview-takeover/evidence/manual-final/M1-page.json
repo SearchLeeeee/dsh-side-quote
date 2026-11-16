@@ -1,0 +1,21 @@
+{
+  "sandboxBuiltin": "allow-scripts",
+  "sandboxTakeover": "allow-scripts",
+  "sameClip": true,
+  "clip": {
+    "x": 793,
+    "y": 76,
+    "width": 647,
+    "height": 824
+  },
+  "selectable": {
+    "quoteButton": {
+      "present": true,
+      "pressed": null,
+      "disabled": false,
+      "hint": "把预览中选中的文字引用到当前会话 | 引用",
+      "text": "引用"
+    },
+    "selected": "The quick brown fox jumps over the lazy"
+  }
+}

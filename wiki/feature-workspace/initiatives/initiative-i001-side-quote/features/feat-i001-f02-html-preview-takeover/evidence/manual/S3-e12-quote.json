@@ -1,0 +1,221 @@
+{
+  "activationPath": "mouse",
+  "buttonEnabled": {
+    "present": true,
+    "pressed": null,
+    "disabled": false,
+    "hint": "把预览中选中的文字引用到当前会话 | 引用",
+    "text": "引用"
+  },
+  "selectionDrive": "mouse",
+  "frameSelection": "The quick brown fox jumps over the lazy",
+  "draggedText": "The quick brown fox jumps over the lazy ",
+  "delta": "\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy",
+  "cards": {
+    "count": 9,
+    "cards": [
+      {
+        "innerText": "a.md notes/a.md 1 行 quick brown fox",
+        "textContent": "a.mdnotes/a.md 1 行 quick brown fox",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "a.md"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "notes/a.md 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "quick brown fox"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "a.md notes/a.md 1 行 quick brown fox",
+        "textContent": "a.mdnotes/a.md 1 行 quick brown fox",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "a.md"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "notes/a.md 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "quick brown fox"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "a.md notes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+        "textContent": "a.mdnotes/a.md 已引用过 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "a.md"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "notes/a.md 已引用过"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "已引用过：notes/a.md\n原文未重复贴出；需要时请重新读取该文件。"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "b.md notes/b.md 1 行 different document body",
+        "textContent": "b.mdnotes/b.md 1 行 different document body",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "b.md"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "notes/b.md 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "different document body"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "textContent": "page.htmlsamples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "page.html"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "samples/page.html 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "The quick brown fox jumps over the lazy"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "textContent": "page.htmlsamples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "page.html"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "samples/page.html 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "The quick brown fox jumps over the lazy"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "page-csp.html samples/page-csp.html 1 行 The page blocks its own scripts with a m",
+        "textContent": "page-csp.htmlsamples/page-csp.html 1 行 The page blocks its own scripts with a m",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "page-csp.html"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "samples/page-csp.html 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "The page blocks its own scripts with a m"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "textContent": "page.htmlsamples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "page.html"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "samples/page.html 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "The quick brown fox jumps over the lazy"
+          }
+        ],
+        "removeLabel": "移除引用"
+      },
+      {
+        "innerText": "page.html samples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "textContent": "page.htmlsamples/page.html 1 行 The quick brown fox jumps over the lazy",
+        "leaves": [
+          {
+            "cls": "",
+            "ariaHidden": "true",
+            "text": "page.html"
+          },
+          {
+            "cls": "_visuallyHidden_d98g2_25",
+            "ariaHidden": null,
+            "text": "samples/page.html 1 行"
+          },
+          {
+            "cls": "_inlineBody_d98g2_34",
+            "ariaHidden": null,
+            "text": "The quick brown fox jumps over the lazy"
+          }
+        ],
+        "removeLabel": "移除引用"
+      }
+    ],
+    "composerText": "a.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 1 行\n quick brown fox\n \na.md\nnotes/a.md 已引用过\n 已引用过：notes/a.md 原文未重复贴出；需要时请重新读取该文件。\n \nb.md\nnotes/b.md 1 行\n different document body\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage-csp.html\nsamples/page-csp.html 1 行\n The page blocks its own scripts with a m\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy\n \npage.html\nsamples/page.html 1 行\n The quick brown fox jumps over the lazy"
+  },
+  "visibleLabel": "page.html",
+  "hiddenTitle": "samples/page.html 1 行 The quick brown fox jumps over the lazy",
+  "consoleErrors": []
+}

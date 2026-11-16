@@ -1,0 +1,14 @@
+{
+  "case": "E-04-0-positive-control",
+  "gitRevision": "d4f6eabe551d9823b801c8e67969e4bbd2af74fb",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T10:40:25.129Z",
+  "takeover": "unavailable",
+  "selectionDrive": null,
+  "iframeSandbox": null,
+  "developerTools": null,
+  "clip": null
+}

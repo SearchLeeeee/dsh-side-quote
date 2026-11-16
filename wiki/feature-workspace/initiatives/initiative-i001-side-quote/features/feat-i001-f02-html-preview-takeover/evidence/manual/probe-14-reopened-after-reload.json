@@ -1,0 +1,13 @@
+{
+  "body": {
+    "takeover": [],
+    "builtin": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/97318255-da94-4739-bae0-080a47e0d659",
+        "srcdoc": false
+      }
+    ],
+    "body": 0
+  }
+}

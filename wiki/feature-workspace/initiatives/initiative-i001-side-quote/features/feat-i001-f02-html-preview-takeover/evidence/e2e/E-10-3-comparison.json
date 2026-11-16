@@ -1,0 +1,20 @@
+{
+  "case": "E-10",
+  "clip": {
+    "x": 793,
+    "y": 76,
+    "width": 647,
+    "height": 824
+  },
+  "takeover": "off",
+  "selectionDrive": null,
+  "sandboxPhaseA": "allow-scripts",
+  "sandboxPhaseB": "allow-scripts",
+  "phaseBReloaded": true,
+  "bytesA": 12647,
+  "bytesB": 12647,
+  "sha256A": "f81d04e13515d81766f6655d535b52337630c5b95f93e767218440b90de3401e",
+  "sha256B": "f81d04e13515d81766f6655d535b52337630c5b95f93e767218440b90de3401e",
+  "identical": true,
+  "capturedAt": "2026-11-16T10:41:22.148Z"
+}

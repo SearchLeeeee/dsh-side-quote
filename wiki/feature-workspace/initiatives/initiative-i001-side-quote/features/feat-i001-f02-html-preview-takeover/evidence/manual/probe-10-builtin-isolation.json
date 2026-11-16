@@ -1,0 +1,19 @@
+{
+  "builtinState": {
+    "takeover": [],
+    "builtin": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/5cfa7000-6375-4e05-9960-ae54cc1a5a1e",
+        "srcdoc": false
+      }
+    ],
+    "body": 0
+  },
+  "builtinIsolation": {
+    "origin": "http://127.0.0.1:34181",
+    "parentReachable": false,
+    "hostGlobals": [],
+    "canPostToParent": true
+  }
+}

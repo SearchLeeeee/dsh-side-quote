@@ -1,0 +1,38 @@
+{
+  "sidebar": {
+    "tabs": [
+      {
+        "text": "文件",
+        "selected": "false"
+      },
+      {
+        "text": "a.md",
+        "selected": "false"
+      },
+      {
+        "text": "page.html",
+        "selected": "true"
+      },
+      {
+        "text": "b.md",
+        "selected": "false"
+      },
+      {
+        "text": "page-csp.html",
+        "selected": "false"
+      }
+    ],
+    "panes": []
+  },
+  "body": {
+    "takeover": [],
+    "builtin": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/97318255-da94-4739-bae0-080a47e0d659",
+        "srcdoc": false
+      }
+    ],
+    "body": 0
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "phaseA": {
+    "toggle": {
+      "present": true,
+      "pressed": false,
+      "disabled": false,
+      "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "text": "接管 HTML 预览"
+    },
+    "quoteButton": {
+      "present": false,
+      "pressed": null,
+      "disabled": null,
+      "hint": "",
+      "text": ""
+    },
+    "body": {
+      "takeover": [],
+      "builtin": [
+        {
+          "sandbox": "allow-scripts",
+          "src": "blob:http://127.0.0.1:34181/f9ccf4d9-c9be-4983-8cdb-9532a5d3cca2",
+          "srcdoc": false
+        }
+      ],
+      "body": 0
+    },
+    "rect": {
+      "found": true,
+      "source": "builtin",
+      "x": 793,
+      "y": 76,
+      "width": 647,
+      "height": 824
+    },
+    "sandbox": "allow-scripts"
+  },
+  "phaseB": {
+    "toggle": {
+      "present": false,
+      "pressed": null,
+      "disabled": null,
+      "hint": "",
+      "text": ""
+    },
+    "quoteButton": {
+      "present": false,
+      "pressed": null,
+      "disabled": null,
+      "hint": "",
+      "text": ""
+    },
+    "body": {
+      "takeover": [],
+      "builtin": [
+        {
+          "sandbox": "allow-scripts",
+          "src": "blob:http://127.0.0.1:34181/944e2840-ae82-464b-b6b4-af4b57a4df42",
+          "srcdoc": false
+        }
+      ],
+      "body": 0
+    },
+    "rect": {
+      "found": true,
+      "source": "builtin",
+      "x": 793,
+      "y": 76,
+      "width": 647,
+      "height": 824
+    },
+    "sandbox": "allow-scripts"
+  },
+  "sameClip": true,
+  "sha256A": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+  "sha256B": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+  "bytesA": 22517,
+  "bytesB": 22517,
+  "identical": true
+}

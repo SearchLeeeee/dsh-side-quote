@@ -1,0 +1,43 @@
+{
+  "sandboxBuiltin": "allow-scripts",
+  "sandboxTakeover": "allow-scripts",
+  "readability": {
+    "heading": "接管验收样例页",
+    "paragraphs": [
+      "The quick brown fox jumps over the lazy dog while the harness records the rendered text.",
+      "Second paragraph with inline bold text and a trailing sentence for selection."
+    ],
+    "listItems": [
+      "Alpha bullet item rendered by the page",
+      "Beta bullet item rendered by the page"
+    ],
+    "bodyColor": "rgb(0, 0, 0)",
+    "fontSize": "16px"
+  },
+  "selectable": {
+    "quoteButton": {
+      "present": true,
+      "pressed": null,
+      "disabled": false,
+      "hint": "把预览中选中的文字引用到当前会话 | 引用",
+      "text": "引用"
+    },
+    "selected": "The quick brown fox jumps over the lazy"
+  },
+  "rectBuiltin": {
+    "found": true,
+    "source": "builtin",
+    "x": 793,
+    "y": 76,
+    "width": 647,
+    "height": 824
+  },
+  "rectTakeover": {
+    "found": true,
+    "source": "takeover",
+    "x": 793,
+    "y": 76,
+    "width": 647,
+    "height": 824
+  }
+}

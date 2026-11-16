@@ -1,0 +1,14 @@
+{
+  "case": "E-18-1-plugin-disabled",
+  "gitRevision": "d4f6eabe551d9823b801c8e67969e4bbd2af74fb",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T10:42:44.824Z",
+  "takeover": "off",
+  "selectionDrive": "mouse",
+  "iframeSandbox": "allow-scripts",
+  "developerTools": true,
+  "clip": null
+}

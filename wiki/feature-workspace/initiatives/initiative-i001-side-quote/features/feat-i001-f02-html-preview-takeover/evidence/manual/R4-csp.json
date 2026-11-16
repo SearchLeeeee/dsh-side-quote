@@ -1,0 +1,22 @@
+{
+  "csp": {
+    "metaPresent": true,
+    "metaContent": "script-src 'none'",
+    "heading": "受 CSP 限制的样例页",
+    "paragraphs": [
+      "The page blocks its own scripts with a meta CSP while still rendering selectable text.",
+      "Second CSP paragraph keeps the selection target long enough for a real drag."
+    ],
+    "scriptCount": 1
+  },
+  "selectable": {
+    "quoteButton": {
+      "present": true,
+      "pressed": null,
+      "disabled": false,
+      "hint": "把预览中选中的文字引用到当前会话 | 引用",
+      "text": "引用"
+    },
+    "selected": "The page blocks its own scripts with a m"
+  }
+}

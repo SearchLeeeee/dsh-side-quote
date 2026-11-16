@@ -1,0 +1,32 @@
+{
+  "sidebar": {
+    "tabs": [
+      {
+        "text": "文件",
+        "selected": "false"
+      },
+      {
+        "text": "a.md",
+        "selected": "false"
+      },
+      {
+        "text": "page.html",
+        "selected": "true"
+      },
+      {
+        "text": "b.md",
+        "selected": "false"
+      },
+      {
+        "text": "page-csp.html",
+        "selected": "false"
+      }
+    ],
+    "panes": []
+  },
+  "body": {
+    "takeover": [],
+    "builtin": [],
+    "body": 0
+  }
+}

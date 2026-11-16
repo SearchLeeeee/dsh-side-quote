@@ -1,0 +1,50 @@
+{
+  "closedToggle": {
+    "present": true,
+    "pressed": false,
+    "disabled": false,
+    "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+    "text": "接管 HTML 预览"
+  },
+  "closedQuote": {
+    "present": false,
+    "pressed": null,
+    "disabled": null,
+    "hint": "",
+    "text": ""
+  },
+  "takeoverBodyStateA2": {
+    "takeover": [],
+    "builtin": [
+      {
+        "sandbox": "allow-scripts",
+        "src": "blob:http://127.0.0.1:34181/bd6b9259-8554-470c-b725-a0f1fe59dbe3",
+        "srcdoc": false
+      }
+    ],
+    "body": 0
+  },
+  "sandboxA": "allow-scripts",
+  "reopenedSidebar": false,
+  "blocked": "no element matches [data-html-preview] within 20000ms",
+  "stateAfterDisable": {
+    "takeover": [],
+    "builtin": [],
+    "body": 0
+  },
+  "sandboxB": null,
+  "rectA": {
+    "found": true,
+    "source": "builtin",
+    "x": 793,
+    "y": 76,
+    "width": 647,
+    "height": 824
+  },
+  "rectB": {
+    "found": false
+  },
+  "sha256A": "ac3768e08cb161c9ff533782eda54fbc305017e7e7f10377d3afa74143353b0c",
+  "sha256B": null,
+  "identical": null
+}

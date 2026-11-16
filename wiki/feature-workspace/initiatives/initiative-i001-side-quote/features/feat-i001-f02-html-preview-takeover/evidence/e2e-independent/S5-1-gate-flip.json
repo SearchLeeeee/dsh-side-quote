@@ -1,0 +1,14 @@
+{
+  "case": "S5-1-gate-flip",
+  "gitRevision": "f0b83189bbece3d49039599498dfd0d995e334fb",
+  "baseUrl": "http://127.0.0.1:34181/",
+  "port": "34181",
+  "profile": "side-quote-verify",
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-16T09:43:37.192Z",
+  "takeover": "on",
+  "selectionDrive": null,
+  "iframeSandbox": "allow-scripts",
+  "developerTools": true,
+  "clip": null
+}

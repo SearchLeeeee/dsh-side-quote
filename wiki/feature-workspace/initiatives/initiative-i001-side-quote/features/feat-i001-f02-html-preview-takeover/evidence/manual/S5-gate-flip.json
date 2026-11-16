@@ -1,0 +1,25 @@
+{
+  "beforeTakeoverCount": 1,
+  "gateClosed": {
+    "takeover": 0,
+    "builtin": 1,
+    "toggle": {
+      "present": true,
+      "pressed": true,
+      "disabled": true,
+      "hint": "需要先开启「开发者工具」（页面脚本）才能接管预览。 | 接管 HTML 预览 | 需要先开启「开发者工具」（页面脚本）才能接管预览。",
+      "text": "接管 HTML 预览 需要先开启「开发者工具」（页面脚本）才能接管预览。"
+    }
+  },
+  "gateReopened": {
+    "takeover": 1,
+    "builtin": 0,
+    "toggle": {
+      "present": true,
+      "pressed": true,
+      "disabled": false,
+      "hint": "开启后由本插件渲染此页面，可在预览内划词引用；外部 CSS/JS/图片不会加载。 | 接管 HTML 预览",
+      "text": "接管 HTML 预览"
+    }
+  }
+}
