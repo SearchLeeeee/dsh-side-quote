@@ -4,4 +4,21 @@ next_initiative_number: 2
 initiatives:
   - id: I001
     manifest: initiatives/initiative-i001-side-quote/initiative.yaml
-feature_tombstones: []
+feature_tombstones:
+  - id: I001-F01
+    initiative: I001
+    phase: merged
+    state: completed
+    canonical_docs:
+      - product/product-vision.md
+      - architecture/module-boundaries.md
+      - implementation/frontend/sidebar-quote-contract.md
+      - implementation/frontend/sidebar-quote-implementation.md
+      - testing/sidebar-quote-acceptance.md
+    merge_evidence:
+      - merge-evidence/F01-merge-receipt.json
+    retained_source:
+      path: initiatives/initiative-i001-side-quote/features/feat-i001-f01-text-preview-quote
+      marker: RETAINED_HISTORY.md
+      route: history-route.yaml
+      checksum_manifest: history-checksums.sha256

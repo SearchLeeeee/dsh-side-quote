@@ -1,0 +1,136 @@
+{
+  "run": "I001-F01-wiki-merge",
+  "initiative": "I001",
+  "feature": "I001-F01",
+  "phase": "canonical_apply",
+  "performedAt": "2026-11-16T12:05:00Z",
+  "preflight": {
+    "workRoot": "D:\\dsh-side-quote",
+    "wikiRoot": "D:\\dsh-side-quote\\wiki",
+    "sourcePath": "wiki/feature-workspace/initiatives/initiative-i001-side-quote/features/feat-i001-f01-text-preview-quote",
+    "sourceKind": "directory",
+    "sourceSha256": "36d302a6a5977b1e4badbd3bb1babe7f7cbe64cf5d46c94ac4e2e288247aab5e",
+    "sourceIsMergedFeature": false,
+    "tools": {
+      "inventory": "D:\\HighLand-factory\\skills\\hl-wiki-merge\\scripts\\inventory_llm_wiki_merge.py",
+      "validator": "D:\\HighLand-factory\\skills\\hl-wiki-merge\\scripts\\validate_llm_wiki.py",
+      "featureWorkspace": "D:\\HighLand-factory\\skills\\hl-feature-workspace\\scripts\\feature_workspace.py",
+      "historyTrace": "D:\\HighLand-factory\\skills\\hl-history-trace\\scripts\\trace_feature_history.py"
+    },
+    "gatesBefore": {
+      "initiativeMergeReady": "passed: initiative I001 is ready for ordered feature merges",
+      "featureMergeReady": "passed: feature is ready to merge",
+      "workspaceGate": "passed",
+      "wikiGate": "passed"
+    },
+    "vcs": {
+      "revision": "d3dd537",
+      "workingTree": "clean"
+    }
+  },
+  "inventory": {
+    "eligible": [
+      "core/implementation.md",
+      "core/quote-content-contract.md",
+      "core/testing-and-acceptance.md",
+      "evidence/review-gate-record.md",
+      "evidence/verification-record.md",
+      "feasibility/summary.md"
+    ],
+    "skippedExcluded": [
+      "code-ai/README.md",
+      "code-ai/implementation-plan.md",
+      "code-ai/reading-agent-profile.md",
+      "code-ai/core-implementation-agent-profile.md",
+      "code-ai/review-agent-profile.md",
+      "code-ai/verification-agent-profile.md",
+      "discussion/workbench.md"
+    ],
+    "ignoredNonMarkdown": ["evidence/e2e/**", "evidence/format-regression/**"]
+  },
+  "mapping": [
+    {
+      "source": "core/quote-content-contract.md",
+      "target": "wiki/implementation/frontend/sidebar-quote-contract.md",
+      "action": "create",
+      "reason": "内容格式与安全规则的唯一权威",
+      "conflict": "none"
+    },
+    {
+      "source": "core/implementation.md",
+      "target": "wiki/implementation/frontend/sidebar-quote-implementation.md",
+      "action": "create",
+      "reason": "接入位点、归属校验、核心流程、接缝、生命周期与失败路径的唯一权威",
+      "conflict": "none"
+    },
+    {
+      "source": "core/testing-and-acceptance.md",
+      "target": "wiki/testing/sidebar-quote-acceptance.md",
+      "action": "create",
+      "reason": "测试分层、用例与验收标准的唯一权威",
+      "conflict": "none"
+    },
+    {
+      "source": "evidence/verification-record.md",
+      "target": "wiki/testing/sidebar-quote-acceptance.md",
+      "action": "update",
+      "reason": "把验收结论与残余风险并入测试权威文档第 7、8 节；执行流水本身不入长期文档",
+      "conflict": "none"
+    },
+    {
+      "source": "evidence/review-gate-record.md",
+      "target": null,
+      "action": "skip",
+      "reason": "过程证据：评审发现已被实现与文档吸收，长期文档不承载评审轮次记录",
+      "conflict": "none"
+    },
+    {
+      "source": "feasibility/summary.md",
+      "target": "wiki/product/product-vision.md",
+      "action": "skip",
+      "reason": "结论已并入产品目标与架构边界（成立条件、负向影响、取舍），无独立长期主题",
+      "conflict": "none"
+    }
+  ],
+  "created": {
+    "wiki/product/README.md": "a7fe0fadc298f90ef82a92874bbad4ebc7c89eb3ab9dea0dfb65b6f025494e09",
+    "wiki/product/product-vision.md": "ff9f7d8f16c8cec02af94107df3fb0b1bf181080b49437a86b2dd66b28e50aeb",
+    "wiki/architecture/README.md": "bd3a66503870e08ca5405468e7169f08a71ed89d021021258871d5ddd0140559",
+    "wiki/architecture/module-boundaries.md": "23dab5fc9d4dca06f474395ef154aa33bd3ef7bee7be04b7230f31adcbb81dc2",
+    "wiki/implementation/README.md": "4be4f5ef3746532794870652ece21aba7857d4b16d1c23e07405db0f66b93f6b",
+    "wiki/implementation/frontend/README.md": "ef9fd06e4b45e0cf5d282be32b23c678a1bc561a334cad6e3b01000930d3f745",
+    "wiki/implementation/frontend/sidebar-quote-contract.md": "3ddf322f4453c17ef7a41b53155bf9a7427e87c177daa50ed38ba60508a2ec46",
+    "wiki/implementation/frontend/sidebar-quote-implementation.md": "8441970aeab296cad1a41c628c632406972d6ccbb0e6b9dfeeaa5fba6b8731f3",
+    "wiki/testing/README.md": "2bc1271eed6e59627e21aa90f2ed511bcc31d080397d32fe93d5159eb31cb575",
+    "wiki/testing/sidebar-quote-acceptance.md": "71d814296a92e08c7a62c550b35e65be5f03cab92b2e0b731df666f7850c16e0"
+  },
+  "updated": {
+    "wiki/README.md": "ea52ed7aaf3794a0622cc4670f76a634e2dfc54184e1f85ac76fecc42b7f4dd1",
+    "wiki/01-reading-guide.md": "bad67156fe3f07475e240d3108f8385b772a7bef9d69bad8d4600b29a368666e",
+    "wiki/02-file-authority-map.md": "db3d4bfbe9601554d9dea7121c38090d87f6fcb044b76b970f1e488bcd58f3af",
+    "wiki/03-current-decisions.md": "8b3806085af45cb7763d8dfc6823d7657a4df42920a59eb3c5f2ba984d9c0b69",
+    "wiki/validation/README.md": "132ba40e08676f18f1c8d94f498154dc84a3ddd85f9d20121da4230e89cf4d61",
+    "wiki/human/system-overview.md": "4e793fce9fc55f870bedcc6589d09f3e12961ed9e1515aa651fdca6fcabf0af2"
+  },
+  "mocChanges": [
+    "root MOC theme map now links product/architecture/implementation/testing MOCs",
+    "four new directory MOCs created (product, architecture, implementation, implementation/frontend, testing)",
+    "authority map placeholder rows replaced by links",
+    "reading guide gained a capability/contract path"
+  ],
+  "validator": {
+    "script": "validate_llm_wiki.py",
+    "exitCode": 0,
+    "filesScanned": 44,
+    "filesExcluded": 36,
+    "linksChecked": 236,
+    "errorCount": 0,
+    "warningCount": 0,
+    "ok": true
+  },
+  "notes": [
+    "未出现语义冲突，无需向 owner 提问。",
+    "canonical 文档不含 I/F 编号，也不链接过程区。",
+    "F02 的 HTML 接管内容不在本次合并范围，由 F02 的合并边界补入。"
+  ]
+}

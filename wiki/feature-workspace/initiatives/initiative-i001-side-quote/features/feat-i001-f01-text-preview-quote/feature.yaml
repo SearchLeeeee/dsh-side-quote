@@ -2,8 +2,8 @@ id: I001-F01
 title: 文本预览划词引用闭环（通用核心 + 文本格式适配）
 leaf: true
 owner: core
-phase: ready-to-merge
-state: ready
+phase: merged
+state: completed
 wave: 1
 depends_on: []
 context_refs:
@@ -98,7 +98,3 @@ consistency_matrix:
     - core/quote-content-contract.md
     promotion_targets:
     - testing/sidebar-quote-acceptance.md
-next_action:
-  skill: hl-feature-discuss
-  instruction: I001-F01 已就绪；下一步对 I001-F02（HTML 预览接管）执行讨论与 profiles，全部 Leaf 就绪后再做 Initiative
-    集成验收

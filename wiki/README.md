@@ -20,6 +20,10 @@
 
 ## 主题地图
 
+- [Product](product/README.md)：产品目标、用户可见能力、明确不做与已确认降级。
+- [Architecture](architecture/README.md)：系统边界、模块划分与只读外部依赖面。
+- [Implementation](implementation/README.md)：可执行实现契约（前端引用能力）。
+- [Testing](testing/README.md)：测试分层、必测用例、验收标准与当前验收结论。
 - [Governance](governance/README.md)：边界、文档协议、流程门禁与生成的门禁摘要。
 - [Validation](validation/README.md)：验证记录与证据索引。
 

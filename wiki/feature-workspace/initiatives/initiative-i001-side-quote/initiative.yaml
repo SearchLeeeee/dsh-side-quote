@@ -11,7 +11,21 @@ context_refs:
   required: true
 features:
 - id: I001-F01
-  manifest: features/feat-i001-f01-text-preview-quote/feature.yaml
+  phase: merged
+  state: completed
+  canonical_docs:
+  - product/product-vision.md
+  - architecture/module-boundaries.md
+  - implementation/frontend/sidebar-quote-contract.md
+  - implementation/frontend/sidebar-quote-implementation.md
+  - testing/sidebar-quote-acceptance.md
+  merge_evidence:
+  - merge-evidence/F01-merge-receipt.json
+  retained_source:
+    path: features/feat-i001-f01-text-preview-quote
+    marker: RETAINED_HISTORY.md
+    route: history-route.yaml
+    checksum_manifest: history-checksums.sha256
 - id: I001-F02
   manifest: features/feat-i001-f02-html-preview-takeover/feature.yaml
 initial_decomposition:

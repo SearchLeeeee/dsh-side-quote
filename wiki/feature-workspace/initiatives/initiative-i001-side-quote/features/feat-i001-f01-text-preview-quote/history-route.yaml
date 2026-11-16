@@ -1,0 +1,158 @@
+schema_version: "1.0"
+status: retained-history
+authority: non-authoritative
+feature_id: I001-F01
+canonical_targets:
+  - implementation/frontend/sidebar-quote-contract.md
+  - implementation/frontend/sidebar-quote-implementation.md
+  - testing/sidebar-quote-acceptance.md
+  - product/product-vision.md
+  - architecture/module-boundaries.md
+routes:
+  - topic: 引用块与指针块的内容模板
+    question_terms:
+      - 引用块长什么样
+      - 为什么第二次引用只给路径
+      - 来源行格式
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 1. 原文块模板
+          - 2. 指针块模板
+  - topic: 截断阈值与先到先截
+    question_terms:
+      - 摘录为什么被截断
+      - 200 行 8000 字符
+      - 截断说明文案
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 4. 截断规则
+  - topic: 来源路径为什么是工作区相对路径
+    question_terms:
+      - 来源路径怎么算
+      - 工作区外路径怎么显示
+      - 反斜杠归一
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 5. 来源路径
+  - topic: 敏感文件名只警示不拦截
+    question_terms:
+      - 敏感文件为什么还能引用
+      - 敏感名单包含什么
+      - 为什么不做内容级检测
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+      - product/product-vision.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 6. 敏感文件警示
+  - topic: 格式白名单与 HTML 排除
+    question_terms:
+      - 哪些格式可以引用
+      - 为什么 HTML 没有引用按钮
+      - 白名单在哪里声明
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 3. 格式白名单
+  - topic: 已引用记录的作用域与生命周期
+    question_terms:
+      - 已引用记录存在哪里
+      - 为什么换会话就不降级
+      - 插件停用后记录还在吗
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-contract.md
+    source_refs:
+      - path: core/quote-content-contract.md
+        headings:
+          - 8. 已引用记录
+      - path: core/implementation.md
+        headings:
+          - 7. 数据契约：已引用记录
+  - topic: 归属校验为什么同时判定起点与终点
+    question_terms:
+      - 跨预览体选区为什么不能引用
+      - 为什么读 focusNode
+      - occurrence 身份比较
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 3.1 归属校验（实现前提，结论已回写）
+  - topic: 按钮状态防抖与点击去重
+    question_terms:
+      - 划词后为什么等一会儿才可点
+      - 连点两次会插入两次吗
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 4. 核心流程
+  - topic: 适配器接缝与只加适配器的可证性
+    question_terms:
+      - 新增格式要不要改核心
+      - 适配器契约是什么
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 5. 适配器接缝
+  - topic: 插件停用后的资源清理
+    question_terms:
+      - 停用插件后还剩什么
+      - 监听和定时器谁负责释放
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 6. 生命周期与清理
+  - topic: 失败分支与通知通道边界
+    question_terms:
+      - 什么时候出现 error 通知
+      - 为什么某些失败是静默的
+      - 插入成功后焦点为什么回到输入框
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 8. 失败与边界行为
+  - topic: 单文件 bundle 与零构建的理由
+    question_terms:
+      - 为什么不拆多个文件
+      - 为什么没有构建链
+    canonical_targets:
+      - implementation/frontend/sidebar-quote-implementation.md
+      - architecture/module-boundaries.md
+    source_refs:
+      - path: core/implementation.md
+        headings:
+          - 9. 可能改动的文件
+  - topic: 验收判定
+    question_terms:
+      - 这个能力按什么标准验收
+      - 为什么必须有端到端证据
+    canonical_targets:
+      - testing/sidebar-quote-acceptance.md
+    source_refs:
+      - path: core/testing-and-acceptance.md
+        headings:
+          - 5. 验收标准
+      - path: evidence/verification-record.md
+        headings:
+          - 8. 结论

@@ -38,6 +38,20 @@ Git 保留。
 新增或调整边界时，必须同时修改 `factory.yaml`（结构化事实）和本小节（自然语言
 解释），并在同一次变更中运行 `factory upgrade`。
 
+## 引用能力
+
+以下为跨领域规则（同时约束产品行为、实现与安全面），细节在
+[前端契约](implementation/frontend/sidebar-quote-contract.md)与
+[实现契约](implementation/frontend/sidebar-quote-implementation.md)：
+
+- 插入与通知只经 `ctx.conversation.input` 的 `insertQuote` 与 `notify`；插件不接管输入框组件。
+- 引用必须由用户显式点击按钮触发；不做自动插入、不绑快捷键。
+- 进入消息正文的来源路径只有引用块 `text` 里的 `来源：` 行；`summary` 只是输入框内的展示副本。
+- 引用内容对来源路径与文件内容敏感：路径按工作区相对化输出，敏感文件名只警示不拦截，不做内容特征级检测。
+- 同一会话内同一文件自第二次引用起只插入指针块；记录只在插件内存，插件停用即清空，不持久化。
+- 新增可引用格式只允许新增适配器，不改核心流程，也不新增格式专用的模板或截断规则。
+- 浏览器行为结论必须有端到端证据；端到端取证只在独立 profile 与独立端口进行，端口不得使用用户 live 实例。
+
 ## 数据与安全
 
 - 敏感数据的类别以 `factory.yaml` 的 `security.sensitive_classes` 为准。

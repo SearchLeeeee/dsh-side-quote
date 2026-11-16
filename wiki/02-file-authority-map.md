@@ -28,15 +28,15 @@
 
 | 主题 | 权威文件 |
 | --- | --- |
-| 产品目标、范围、稳定需求 | `product/product-vision.md` |
+| 产品目标、范围、稳定需求 | [product/product-vision.md](product/product-vision.md) |
 | 领域对象、术语与业务规则 | `domain/domain-objects.md` |
-| 系统边界与模块划分 | `architecture/module-boundaries.md` |
+| 系统边界与模块划分 | [architecture/module-boundaries.md](architecture/module-boundaries.md) |
 | 数据计划与数据源契约 | `architecture/data-plan.md` |
 | 后端实现与接口契约 | `implementation/backend/` |
-| 前端实现与交互契约 | `implementation/frontend/` |
+| 前端实现与交互契约 | [implementation/frontend/](implementation/frontend/README.md) |
 | 跨端共享契约 | `implementation/shared/` |
 | 稳定 Feature 说明 | `features/` |
-| 测试工程与 fixtures 治理 | `testing/` |
+| 测试工程与 fixtures 治理 | [testing/](testing/README.md) |
 | 验证记录与证据索引 | `validation/` |
 | 边界与文档维护规则 | `governance/` |
 | 实现类 agent profile | `code-ai/` |

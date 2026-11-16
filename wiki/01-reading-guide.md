@@ -18,6 +18,14 @@
 3. [当前决策](03-current-decisions.md)：确认边界与禁止项。
 4. [Governance](governance/README.md)：确认本次改动走哪条流程通道。
 
+## 了解插件能力与实现契约
+
+1. [产品目标](product/product-vision.md)：先确认用户可见能力与明确不做的范围。
+2. [系统边界](architecture/module-boundaries.md)：确认插件能碰哪些位点与服务。
+3. [引用内容契约](implementation/frontend/sidebar-quote-contract.md)：进入消息正文的内容格式与安全规则。
+4. [引用实现契约](implementation/frontend/sidebar-quote-implementation.md)：接入位点、归属校验与失败路径。
+5. [测试与验收](testing/sidebar-quote-acceptance.md)：改动的验收判定与证据形式。
+
 ## 维护者 / 文档治理
 
 1. [Wiki 运行规范](00-spec.md)：结构、链接和维护规则。

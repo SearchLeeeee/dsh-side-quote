@@ -13,4 +13,14 @@
   配置和 [Workflow Profile](../governance/workflow-profile.md) 为准，不要假定本目录。
 - 结论要可判定（通过/失败/不适用），禁止只写「已验证」。
 
+## 当前有效验证范围
+
+- 引用能力的测试分层、必测用例与验收判定以
+  [测试与验收](../testing/sidebar-quote-acceptance.md)为准；该文档同时记录当前验收结论与
+  残余风险，本目录不复制其内容。
+- 逐次执行证据（截图、sidecar、原始日志）留在对应过程工作区的证据根内，不进入本目录，
+  也不在长期 MOC 中建立逐条历史索引。
+- 命令与门禁以 [Workflow Profile](../governance/workflow-profile.md) 为准；本目录只说明
+  验证范围、基线与限制。
+
 冲突裁决见[文件权威地图](../02-file-authority-map.md)；导航入口见[Wiki 根 MOC](../README.md)。
