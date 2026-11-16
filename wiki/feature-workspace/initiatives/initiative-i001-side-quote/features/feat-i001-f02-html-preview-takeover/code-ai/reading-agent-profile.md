@@ -92,7 +92,7 @@ U-20…U-31、E-10…E-18 与 AC-17…AC-30。
 
 - `node --check code/index.js`
 - `node --check code/client.js`
-- `node --test "code/test/**/*.test.mjs"`
+- `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
 
 ## Handoff
 

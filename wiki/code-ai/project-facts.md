@@ -73,10 +73,10 @@ node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 
 | 层 | 承载 | 运行方式 | 能证明什么 |
 | --- | --- | --- | --- |
-| 单元层 | 引用内容模板与保真、截断、路径相对化、格式白名单、敏感名单、已引用记录、防抖与点击去重、清理、适配器接缝、`summary` 契约、中英字典 | `node --test "code/test/**/*.test.mjs"` | 纯逻辑正确性；无需浏览器与 DSH 实例 |
-| 端到端层 | 真实 DSH 侧栏里的划词 → 按钮可用性 → 插入 → 通知，以及各格式零影响 | `node --test "code/test/e2e/**/*.test.mjs"`（需外部实例与浏览器驱动） | 浏览器主链路 |
-| HTML 接管层（单元） | 接管开关的持久化 fail-closed、闸门状态机、iframe 桥报文校验与 4000ms 就绪超时、按 iframe 隔离与卸载清理、`sandbox` 只含 `allow-scripts` 的结构断言、中英字典新增键 | `node --test "code/test/**/*.test.mjs"` | 接管逻辑与状态逻辑；无需浏览器 |
-| HTML 接管层（端到端） | 关闭态正文与插件停用逐字节一致、开启自检与通知预算、真实拖选引用、CSP 页面、同文件指针块、闸门关闭、开启后关闭、停用清理 | `node --test "code/test/e2e/html-takeover.test.mjs"`（需外部实例与浏览器驱动） | 接管后的浏览器主链路与安全性可观察面 |
+| 单元层 | 引用内容模板与保真、截断、路径相对化、格式白名单、敏感名单、已引用记录、防抖与点击去重、清理、适配器接缝、`summary` 契约、中英字典 | `node --test --test-concurrency=1 "code/test/**/*.test.mjs"` | 纯逻辑正确性；无需浏览器与 DSH 实例 |
+| 端到端层 | 真实 DSH 侧栏里的划词 → 按钮可用性 → 插入 → 通知，以及各格式零影响 | `node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"`（需外部实例与浏览器驱动） | 浏览器主链路 |
+| HTML 接管层（单元） | 接管开关的持久化 fail-closed、闸门状态机、iframe 桥报文校验与 4000ms 就绪超时、按 iframe 隔离与卸载清理、`sandbox` 只含 `allow-scripts` 的结构断言、中英字典新增键 | `node --test --test-concurrency=1 "code/test/**/*.test.mjs"` | 接管逻辑与状态逻辑；无需浏览器 |
+| HTML 接管层（端到端） | 关闭态正文与插件停用逐字节一致、开启自检与通知预算、真实拖选引用、CSP 页面、同文件指针块、闸门关闭、开启后关闭、停用清理 | `node --test --test-concurrency=1 "code/test/e2e/html-takeover.test.mjs"`（需外部实例与浏览器驱动） | 接管后的浏览器主链路与安全性可观察面 |
 | 人工回归层 | 非文本格式（pdf / png / xlsx / docx）与 `.html` 的预览表现：自带渲染 vs 接管渲染的可读性、可选择性、外部资源未加载 | 人眼逐格式确认 + 截图 | 未破坏既有预览，接管后仍可用 |
 
 HTML 接管层的端到端用例要驱动不透明 origin 的 iframe：选区由 CDP

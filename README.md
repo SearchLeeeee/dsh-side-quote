@@ -31,7 +31,7 @@ DSH Web 客户端插件：在右侧栏预览里划词，自动把选中文字作
 ```text
 node --check code/index.js
 node --check code/client.js
-node --test "code/test/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 ```
 
 首次基线与已知缺口记录在 [wiki/validation/init-baseline.md](wiki/validation/init-baseline.md)。

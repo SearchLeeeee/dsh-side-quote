@@ -67,7 +67,7 @@ diff 与新增文件内容识别，不为验证默认新建冻结提交或克隆
 
 逐项判定 `core/testing-and-acceptance.md` §6 的 AC-17…AC-30：
 
-- 单元层：独立执行 `node --test "code/test/**/*.test.mjs"`，不只读实现者的结论；对
+- 单元层：独立执行 `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`，不只读实现者的结论；对
   U-20（白名单不变）、U-21（两条归属分支）、U-23（报文丢弃且不清空）、U-25（超时恢复）、
   U-26（闸门状态机）、U-27（fail-closed）、U-28（计数归零）逐条确认。
 - 端到端层：按 §3 的 E-10…E-18 执行。E-12 的选区驱动按 §4.2 优先级进行，并在证据中
@@ -80,8 +80,8 @@ diff 与新增文件内容识别，不为验证默认新建冻结提交或克隆
 
 - `node --check code/index.js`
 - `node --check code/client.js`
-- `node --test "code/test/**/*.test.mjs"`
-- `node --test "code/test/e2e/**/*.test.mjs"`（需 `SIDE_QUOTE_E2E_BASE_URL`、
+- `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
+- `node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"`（需 `SIDE_QUOTE_E2E_BASE_URL`、
   `SIDE_QUOTE_E2E_CDP`、`SIDE_QUOTE_E2E_EVIDENCE_DIR`、`SIDE_QUOTE_E2E_PROFILE`）
 
 视觉/交互证据要求：**在范围内**。证据必须绑定 Git revision、实例 origin 与端口、profile、

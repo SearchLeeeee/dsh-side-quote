@@ -43,7 +43,7 @@ DSH Web 客户端插件：在右侧栏的文本类文档预览里划词，用预
 ```bash
 node --check code/index.js
 node --check code/client.js
-node --test "code/test/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/**/*.test.mjs"
 ```
 
 端到端层需要已存在的外部实例与浏览器驱动（PowerShell）：
@@ -53,7 +53,7 @@ $env:SIDE_QUOTE_E2E_BASE_URL = 'http://127.0.0.1:<port>/?token=<boot token>'
 $env:SIDE_QUOTE_E2E_CDP      = 'http://127.0.0.1:<cdp port>'
 $env:SIDE_QUOTE_E2E_EVIDENCE_DIR = '<evidence dir>'   # 必需：截图与 sidecar 落这里
 $env:SIDE_QUOTE_E2E_PROFILE      = '<profile 名>'      # 必需：sidecar 的隔离身份
-node --test "code/test/e2e/**/*.test.mjs"
+node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"
 ```
 
 **实际端口以验收环境文档为准**：`3181` 只是默认值，在本机它落在 Windows 保留端口段
@@ -92,7 +92,9 @@ node --test "code/test/e2e/**/*.test.mjs"
 - 端到端层会改动实例的全局状态（接管键、开发者工具闸门、插件开关），因此**必须串行运行**
   各个用例文件（例如 `node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"`）。
   并行跑会让停用插件的那两个用例把同时运行的其他文件打挂，那是用例互相干扰，不是产品缺陷。
-  用例失败在停用步骤时，实例里的插件会停留在停用状态，重跑前请先在插件清单里重新启用。
+  `quote-flow.test.mjs` 的 `E-08` 会在通过后把插件留在停用状态（它断言的是停用清理），因此
+  `formats.test.mjs` 与 `html-takeover.test.mjs` 各有一个前置步骤，在开跑前把插件重新启用——
+  这样登记的串行命令可以反复执行，而不依赖上一轮最后一个用例留下的状态。
 
 ## 已知取舍（已记录，不修好）
 
@@ -110,7 +112,7 @@ node --test "code/test/e2e/**/*.test.mjs"
 
 ## HTML 预览接管的已知取舍（I001-F02）
 
-以下九条是接管能力的显式边界，**不要**当成缺陷去"修好"：
+以下十条是接管能力的显式边界，**不要**当成缺陷去"修好"：
 
 1. **接管默认关闭，入口是 HTML 预览头部的开关**；关闭时正文与自带实现一致，但头部多一个控件
    （入口本身不属于预览行为差异）。
@@ -129,6 +131,11 @@ node --test "code/test/e2e/**/*.test.mjs"
 8. **缩放不适用**：HTML 预览本身没有缩放能力（`ZoomViewport` 只用于 image 与 pdf）。
 9. **手写 bundle 与本版 DSH 客户端接口强耦合**：升级到新 rc 后必须重跑单元层与端到端层，
    回归责任在本项目，不在 DSH。
+10. **接管开启时停用插件，已打开的 HTML 预览可能空白直到刷新页面**：该 tab 的正文位点绑在
+    插件注册的 `documentPreviews` 定义 id 上，停用后定义消失，右侧栏可能整体收起而 tab 仍在，
+    正文渲染不出任何内容；**刷新页面后**由自带实现渲染。这是平台侧行为，本 Feature 不为此改
+    产品代码，按已知边界记录（不是缺陷修复项）。`E-10` / `E-18` 的停用阶段因此先断言清理
+    （插件标记消失、控制台无 error、`blob:` 不再被引用），再整页刷新后断言自带正文回归。
 
 ## 实现取舍（I001-F01 起，继续有效）
 

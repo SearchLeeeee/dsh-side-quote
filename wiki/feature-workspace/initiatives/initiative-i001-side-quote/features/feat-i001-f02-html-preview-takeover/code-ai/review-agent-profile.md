@@ -78,7 +78,7 @@
 
 - `node --check code/index.js`
 - `node --check code/client.js`
-- `node --test "code/test/**/*.test.mjs"`
+- `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
 
 ## Handoff
 

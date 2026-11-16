@@ -125,9 +125,9 @@ TDD 顺序与代码质量纪律以 `wiki/code-ai/_blocks/coding-discipline.md` �
 
 - `node --check code/index.js`
 - `node --check code/client.js`
-- `node --test "code/test/**/*.test.mjs"`
+- `node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
 
-端到端命令 `node --test "code/test/e2e/**/*.test.mjs"` 已登记，但实现角色不执行浏览器
+端到端命令 `node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"` 已登记，但实现角色不执行浏览器
 验收；由验证角色在独立环境运行。
 
 ## Handoff

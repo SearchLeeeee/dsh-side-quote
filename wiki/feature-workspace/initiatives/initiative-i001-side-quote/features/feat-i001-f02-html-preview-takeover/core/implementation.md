@@ -268,7 +268,7 @@ bridge[iframe] = {
 | `insertQuote` 返回 `false` | 一条 `error`，不重试、不降级为 `setDraft`、不写已引用记录 |
 | 页面重新导航后桥未恢复 | 按"未就绪"处理，允许后续 `ready` 恢复 |
 | 手动切回自带渲染器 | 引用按钮仍存在但恒置灰（该位点拿不到本 tab 选中的实现）；写入 README |
-| 插件在接管开启状态下停用 | 全部注册注销、iframe 卸载、blob 回收、监听移除；此后划词无反应 |
+| 插件在接管开启状态下停用 | 全部注册注销、iframe 卸载、blob 回收、监听移除；此后划词无反应。已打开的预览 tab 正文为空（右侧栏可能收起、tab 仍在），**整页刷新后**由自带实现渲染——平台侧行为，见 `code/README.md` 的 HTML 已知取舍第 10 条 |
 
 ## 10. 可能改动的文件
 
@@ -296,8 +296,8 @@ bridge[iframe] = {
 只引用 Workflow Profile 命令表中的命令：
 
 - 静态检查：`node --check code/index.js`、`node --check code/client.js`
-- 单元/集成：`node --test "code/test/**/*.test.mjs"`
-- 端到端：`node --test "code/test/e2e/**/*.test.mjs"`（命令已登记；需外部实例与浏览器驱动）
+- 单元/集成：`node --test --test-concurrency=1 "code/test/**/*.test.mjs"`
+- 端到端：`node --test --test-concurrency=1 "code/test/e2e/**/*.test.mjs"`（命令已登记；需外部实例与浏览器驱动）
 - 验收验证：静态检查 + 单元/集成 + 端到端 + 人工回归，证据形式见
   [testing-and-acceptance.md](testing-and-acceptance.md)。
 
